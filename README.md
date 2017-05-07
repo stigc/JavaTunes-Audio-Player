@@ -22,7 +22,7 @@ Usage
 		AudioPlayer audioPlayer = new AudioPlayer();
 		AudioInfo ai = audioPlayer.play(track, true, false);
 				
-		while (true)
+		while (audioPlayer.playing)
 		{
 			Thread.sleep(1000);	
 			synchronized (ai)
