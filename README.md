@@ -1,5 +1,5 @@
 # JavaTunes-Audio-Player
-This is the playback and tag parsing code extracted from my very old JavaTunes project (http://stigc.dk/projects/JavaTunes/). Some of the code is from before 2004 (Java 1.4). I did som quick refactoring to make it usable - I hope I succeeded. All playback is native Java code. No libs required.
+This is the playback and tag parsing code extracted from my very old JavaTunes project (http://stigc.dk/projects/JavaTunes/). Some of the code is from before 2004 (Java 1.4). All playback is native Java code. No libs required.
 
 Decoders
 
@@ -11,7 +11,7 @@ Tags supported
 
 Features
 
-	Shourcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres
+	SHOUTcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres
 
 Usage
 
@@ -34,3 +34,5 @@ Usage
 or without parsing tags, 1 line of code
 
 	new AudioPlayer().play("my file");
+
+Note that seeking is not supported.
