@@ -1,13 +1,16 @@
 # JavaTunes-Audio-Player
-This is the playback and tag parsing code extracted from my very old JavaTunes project (http://stigc.dk/projects/JavaTunes/). Some of the code is from 2004. I did som quick refatoring to make it usable, I hope I succeded.
+This is the playback and tag parsing code extracted from my very old JavaTunes project (http://stigc.dk/projects/JavaTunes/). Some of the code is from before 2004 (Java 1.4). I did som quick refatoring to make it usable, I hope I succeded. All playback is native Java code. No libs required.
 
 Decoders
+
 	Ogg Vorbis, FLAC, MP3, AAC, ALAC and WavPack
 
 Tags supported
+
 	ID3v1, ID3v2, Ogg Comments, APEv2 and QuickTime
 
 Features
+
 	Shourcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres
 
 Ussage
