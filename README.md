@@ -13,9 +13,9 @@ Features
 
 	Shourcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres
 
-Ussage
+Usage
 
-		File file = new File(...);
+		File file = new File("my file");
 		Track track = new TagReaderManager().read(file);
 		System.out.println(track.toString());
 		
@@ -30,3 +30,7 @@ Ussage
 				System.out.println(ai.toString());
 			}
 		}
+
+or without parsing tags, 1 line of code
+
+	new AudioPlayer().play("my file");
