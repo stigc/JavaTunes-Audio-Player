@@ -32,17 +32,17 @@ public class InputstreamSelector
 		InputStream is = ish.httpGetWithIcyMetadata(audio.getPath());
 		contentLength = ish.contentLength;
 		
-    	if (audioInfo.Codec == Codec.unknown)
+    	if (audioInfo.codec == Codec.unknown)
     	{
     		is = new InputStreamWithTypeParser(is);
     		InputStreamType type = ((InputStreamWithTypeParser)is).tryIdentifyStream();
     		
     		if (type == InputStreamType.AACADTS)
-    			audioInfo.Codec = Codec.aacadts;
+    			audioInfo.codec = Codec.aacadts;
     		else if (type == InputStreamType.OGG)
-    			audioInfo.Codec = Codec.vorbis;    		
+    			audioInfo.codec = Codec.vorbis;    		
     		else
-    			audioInfo.Codec = Codec.mp3;	    	
+    			audioInfo.codec = Codec.mp3;	    	
     		
     		/*
     		if (type == InputStreamType.EXTM3U)

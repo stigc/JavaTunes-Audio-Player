@@ -36,6 +36,9 @@ public class AudioPlayer
 
     public synchronized void setVolume (int volume) 
     {
+    	if (volume<0 || volume>100)
+    		throw new RuntimeException("Volume should be between 0 and 100");
+    	
     	this.volume = volume;
     	double gain = volume/100.0;
    		player.setVolume(gain);
@@ -51,28 +54,21 @@ public class AudioPlayer
 
 	public synchronized AudioInfo play(String path) throws Exception
 	{
-		return play(new AudioImpl(path), true, false);
+		return play(new AudioImpl(path), false, false);
 	}
 	
-	public synchronized AudioInfo play(IAudio audio, boolean forced, boolean albumMode) throws Exception
+	public synchronized AudioInfo play(IAudio audio, boolean forced, boolean replayGainInAlbumMode) throws Exception
 	{
     	stop(forced);
     	
     	audioInfo = new AudioInfo();
-    	audioInfo.Codec = audio.getCodec();
+    	audioInfo.codec = audio.getCodec();
     	InputstreamSelector inputStreamSelector = new InputstreamSelector();
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
     	
-    	//if only mp4 container detected use tag-parser to find codec.
-    	if (audioInfo.Codec == Codec.mp4container 
-    			&& inputStreamSelector.isRemote == false)
-    	{
-    		File file = new File(audio.getPath());
-    		Track s = new TagReaderManager().read(file);
-    		audioInfo.Codec = s.codec;
-    	}
+    	extractMp4ContainerCodec(audio, inputStreamSelector);
     	
-    	switch (audioInfo.Codec)
+    	switch (audioInfo.codec)
 		{
 			case flac:
 				player = new FLACPlayer();
@@ -100,13 +96,27 @@ public class AudioPlayer
 		double gain = volume/100.0;
 		
 		player.hook = hook;
-		player.setData(is, audio, audioInfo, gain, albumMode);	
+		player.setData(is, audio, audioInfo, gain, replayGainInAlbumMode);	
 		player.audioInfo.contenLength = inputStreamSelector.contentLength;
 		player.audioInfo.granules = inputStreamSelector.granules;
 		player.start();
 
 		Log.write("Player started: " + player.getClass().getName());
 		return audioInfo;
+	}
+
+	private void extractMp4ContainerCodec(IAudio audio,
+			InputstreamSelector inputStreamSelector)
+			throws FileNotFoundException
+	{
+    	if (audioInfo.codec == Codec.mp4container 
+    			&& inputStreamSelector.isRemote == false)
+    	{
+    		File file = new File(audio.getPath());
+    		Track track = new TagReaderManager().read(file);
+    		if (track != null)
+    			audioInfo.codec = track.codec;
+    	}
 	}
     
     public int getVolume()

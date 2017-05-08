@@ -101,7 +101,7 @@ public class Tests
 	}
 
 	@Test
-	public void hookWillWork() throws Exception
+	public void hookWillWorkAndThisWillPlayGapless() throws Exception
 	{
 		final ArrayDeque<String> tracks = new ArrayDeque<String>();
 		tracks.add(root + "gapless.test.samples\\Vorbis\\01 Track01.ogg");
@@ -119,7 +119,7 @@ public class Tests
 					{
 						System.out.println("Next");						
 						audioPlayer.play(tracks.pop());
-						}
+					}
 				} 
 				catch (Exception e) {}
 			}
@@ -131,8 +131,7 @@ public class Tests
 		});
 		
 		audioPlayer.play(tracks.pop());
-
-		Thread.sleep(100000);
+		Thread.sleep(15000);
 	}
 	private void playFor3Seconds(String path) throws Exception
 	{

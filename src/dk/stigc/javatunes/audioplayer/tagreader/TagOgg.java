@@ -169,8 +169,6 @@ public class TagOgg extends TagBase
 				else if (i==8) lyrics = value;						
 				else if (isCovertag(i)) embededCover = true;	
 				else if (i==11) addDiscNumber(value);			
-				//else if (i==11) 
-				//	Log.write("Albumartist:" + value);
 				return true;					
 			}
 		}				
@@ -203,11 +201,6 @@ public class TagOgg extends TagBase
 		//build new array
 		int newlength = data.length - skip;
 		imgData = Common.resize(data, newlength, true); 
-		//FileOutputStream fos = new FileOutputStream("c:\\out.jpg");
-		//fos.write(imgData);
-		//fos.write(commentsData, 0, commentsSize);
-		//Log.write(value);
-		//Log.write("l:" +l);	
 	}
 	
 	final protected int touint(byte n) 

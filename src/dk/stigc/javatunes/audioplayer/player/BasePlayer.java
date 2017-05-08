@@ -21,21 +21,18 @@ abstract public class BasePlayer extends Thread
 	private boolean bigEndian;
 	
 	private double startGain;
-	private double rpgain = 1;
-	private volatile static double globalRpgain;
+	//These will be applied in write method (1 = no gain)
+	private double tagReplayGain = 1;
+	private volatile static double globalReplayGain = 1;
 
-	static 
-	{
-		setGlobalRpgain(0);
-	}
-	
 	public static void setGlobalRpgain(double db)
 	{
 		Log.write("global rpgain set to " + db + " db");
-		globalRpgain = Math.pow(10, db / 20.0);
+		globalReplayGain = Math.pow(10, db / 20.0);
 	}
 		
-	public void setData(InputStream in, IAudio audio, AudioInfo audioInfo, double startGain, boolean albumMode)
+	public void setData(InputStream in, IAudio audio, AudioInfo audioInfo
+			, double startGain, boolean replayGainInAlbumMode)
 	{
 		setPriority(MAX_PRIORITY);
 		this.audioInfo = audioInfo;
@@ -45,11 +42,11 @@ abstract public class BasePlayer extends Thread
 		
 		if (true)
 		{
-			double db = audio.getReplayGain(albumMode);
+			double db = audio.getReplayGain(replayGainInAlbumMode);
 			if (db!=0 && Math.abs(db)<50)
 			{
 				Log.write("rpgain is " + db + " db");
-				rpgain = Math.pow(10, db / 20.0);
+				tagReplayGain = Math.pow(10, db / 20.0);
 			}
 		}
 	}
@@ -102,7 +99,7 @@ abstract public class BasePlayer extends Thread
   	
 	private void applyGain(byte[] data, int length)
   	{
-  		double totalrpgain = rpgain * globalRpgain;
+  		double totalrpgain = tagReplayGain * globalReplayGain;
   		
   		if (totalrpgain==1)
   			return;
@@ -158,8 +155,7 @@ abstract public class BasePlayer extends Thread
   		applyGain(data, length);
   		
   		totalBytes += length;
-  		
-  		//Log.write("this:" + this);
+
   		synchronized (writerLock)
   		{
 			int orgLength = length;
@@ -221,11 +217,13 @@ abstract public class BasePlayer extends Thread
 		} 
 		catch (Exception ex) 
 		{
-			hook.trackDecodingError(ex);
+			if (hook != null)
+				hook.trackDecodingError(ex);
 		}
 		finally 
 		{
-			hook.trackEnded(finished);
+			if (hook != null)
+				hook.trackEnded(finished);
 			Common.close(bin);
 		}
 	}  

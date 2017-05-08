@@ -12,7 +12,7 @@ public class AudioInfo
 	public long positionInMs;
 	public long contenLength;
 	public String icyName, icyGenre, icyNowPlaying;
-	public Codec Codec;
+	public Codec codec;
 	
 	public synchronized void init(int channels, int sampleRate, int bitsPerSample)
 	{
