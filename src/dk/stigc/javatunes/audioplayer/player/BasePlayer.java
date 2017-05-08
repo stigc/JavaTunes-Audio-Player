@@ -2,10 +2,13 @@ package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
 
+import javax.sound.sampled.LineUnavailableException;
+
 import dk.stigc.javatunes.audioplayer.other.*;
 
 abstract public class BasePlayer extends Thread
 {	  	
+	IAudioPlayerHook hook;
   	protected BufferedInputStream bin;
   	private static SourceDataLineManager dlm = new SourceDataLineManager();
   	public static boolean noOutput = false; //Used for decoding speed test
@@ -23,7 +26,7 @@ abstract public class BasePlayer extends Thread
 
 	static 
 	{
-		setGlobalRpgain(1);
+		setGlobalRpgain(0);
 	}
 	
 	public static void setGlobalRpgain(double db)
@@ -210,23 +213,26 @@ abstract public class BasePlayer extends Thread
 	
 	public void run() 
 	{
+		boolean finished = false;
 		try 
 		{
 			decode();
+			finished = true;
 		} 
-		catch (Exception e) 
+		catch (Exception ex) 
 		{
-			Log.write("Decoding error", e);
+			hook.trackDecodingError(ex);
 		}
 		finally 
 		{
+			hook.trackEnded(finished);
 			Common.close(bin);
 		}
 	}  
 		
 
 	
-  	protected void initAudioLine(int channels, int rate, int bps, boolean signed, boolean bigEndian)
+  	protected void initAudioLine(int channels, int rate, int bps, boolean signed, boolean bigEndian) throws LineUnavailableException
   	{
   		audioInfo.init(channels, rate, bps);
 

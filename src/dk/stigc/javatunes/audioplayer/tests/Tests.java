@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.*;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -78,6 +79,61 @@ public class Tests
 		playFor3Seconds(null, track);
 	}
 
+	@Test
+	public void pauseShouldWork() throws Exception
+	{
+		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
+		AudioPlayer audioPlayer = new AudioPlayer();
+		
+		audioPlayer.play(path);
+		System.out.println("pause");
+		audioPlayer.pause();
+		Thread.sleep(2000);
+		
+		System.out.println("pause");
+		audioPlayer.pause();
+		Thread.sleep(2000);
+		
+		System.out.println("pause and play");
+		audioPlayer.pause();
+		audioPlayer.play(path);
+		Thread.sleep(2000);
+	}
+
+	@Test
+	public void hookWillWork() throws Exception
+	{
+		final ArrayDeque<String> tracks = new ArrayDeque<String>();
+		tracks.add(root + "gapless.test.samples\\Vorbis\\01 Track01.ogg");
+		tracks.add(root + "gapless.test.samples\\Vorbis\\02 Track02.ogg");
+		tracks.add(root + "gapless.test.samples\\Vorbis\\03 Track03.ogg");
+		
+		final AudioPlayer audioPlayer = new AudioPlayer();
+		audioPlayer.addHook(new IAudioPlayerHook() {
+			@Override
+			public void trackEnded(boolean finished)
+			{
+				try
+				{
+					if (tracks.size()>0)
+					{
+						System.out.println("Next");						
+						audioPlayer.play(tracks.pop());
+						}
+				} 
+				catch (Exception e) {}
+			}
+			@Override
+			public void trackDecodingError(Exception ex)
+			{
+				System.out.println("trackDecodingError: " + ex.getMessage());					
+			}
+		});
+		
+		audioPlayer.play(tracks.pop());
+
+		Thread.sleep(100000);
+	}
 	private void playFor3Seconds(String path) throws Exception
 	{
 		playFor3Seconds(path, null);
@@ -88,8 +144,10 @@ public class Tests
 		System.out.println("Testing: " + path);
 		
 		AudioPlayer audioPlayer = new AudioPlayer();
+		
 		AudioInfo ai = track != null ?
 				audioPlayer.play(track, true, false) : audioPlayer.play(path);
+				
 		long startTime = System.currentTimeMillis();
 		
 		while (System.currentTimeMillis() - startTime < 3000)

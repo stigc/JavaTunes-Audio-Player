@@ -2,6 +2,8 @@ package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
 
+import javax.sound.sampled.LineUnavailableException;
+
 import wavpack.*;
 
 public class WavPackPlayer extends BasePlayer
@@ -10,7 +12,7 @@ public class WavPackPlayer extends BasePlayer
     static int [] temp_buffer = new int[SAMPLE_BUFFER_SIZE];
     static byte [] pcm_buffer = new byte[4 * SAMPLE_BUFFER_SIZE];
     
-    public void decode()
+    public void decode() throws LineUnavailableException
     {
     	DataInputStream dis = new DataInputStream(bin);
     	

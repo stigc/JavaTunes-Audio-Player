@@ -2,29 +2,51 @@ package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
 
-import com.sun.xml.internal.bind.v2.model.annotation.Quick;
-
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.tagreader.*;
 
 public class AudioPlayer
 {
+	IAudioPlayerHook hook;
 	private volatile int volume;
-    public volatile boolean paused = false;
-    public volatile boolean playing = false;
+    public volatile boolean paused;
     public AudioInfo audioInfo;
-    private volatile BasePlayer player = new VoidPlayer();
+    private BasePlayer player = new VoidPlayer();
     
 	public AudioPlayer()
 	{
 		this.setVolume(100);		
-	}    
+	}  
 	
+	public void addHook(IAudioPlayerHook hook)
+	{
+		this.hook = hook;
+	}    
+
+    public synchronized void setSpeed(int speed)
+    {
+   		player.setSpeed(speed);    		
+    }
+
+    public synchronized void pause() 
+    {
+   		paused = !paused;
+    	player.pause();
+    }
+
+    public synchronized void setVolume (int volume) 
+    {
+    	this.volume = volume;
+    	double gain = volume/100.0;
+   		player.setVolume(gain);
+    }
+    
     public synchronized void stop(boolean forced)
     {	
 		player.stop(forced);
-		paused = false;
-		playing = false;
+
+		if (paused)
+			pause();
     }
 
 	public synchronized AudioInfo play(String path) throws Exception
@@ -76,42 +98,19 @@ public class AudioPlayer
 		}
 		
 		double gain = volume/100.0;
-		player.setData(is, audio, audioInfo, gain, albumMode);	
 		
+		player.hook = hook;
+		player.setData(is, audio, audioInfo, gain, albumMode);	
 		player.audioInfo.contenLength = inputStreamSelector.contentLength;
 		player.audioInfo.granules = inputStreamSelector.granules;
-		
-
-		
 		player.start();
 
-		Log.write("Player initialized: " + player.getClass().getName());
-		playing = true;
-		
+		Log.write("Player started: " + player.getClass().getName());
 		return audioInfo;
 	}
-		
-	
-    public void setSpeed(int speed)
-    {
-   		player.setSpeed(speed);    		
-    }
-    
-    public void pause() 
-    {
-   		paused = !paused;
-    	player.pause();
-    }
     
     public int getVolume()
     {
     	return volume;
-    }
-    
-    public void setVolume (int volume) 
-    {
-    	this.volume = volume;
-    	double gain = volume/100.0;
-   		player.setVolume(gain);
     }
 }

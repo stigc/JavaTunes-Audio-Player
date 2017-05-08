@@ -2,6 +2,8 @@ package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
 
+import javax.sound.sampled.LineUnavailableException;
+
 import org.kc7bfi.jflac.*;
 import org.kc7bfi.jflac.metadata.StreamInfo;
 import org.kc7bfi.jflac.util.ByteData;
@@ -10,6 +12,8 @@ import dk.stigc.javatunes.audioplayer.other.*;
 
 public class FLACPlayer extends BasePlayer implements PCMProcessor 
 {
+	Exception ex;
+	
     private void calculatePlayLength(StreamInfo si)
     {
     	int samplerate = si.getSampleRate();
@@ -32,7 +36,10 @@ public class FLACPlayer extends BasePlayer implements PCMProcessor
 		{
 			if (!running) 
 				return;
-
+			
+			if (ex != null)
+				throw ex;
+			
 			decoder.findFrameSync();
 								
 	        try
@@ -61,7 +68,14 @@ public class FLACPlayer extends BasePlayer implements PCMProcessor
 		//Log.write("si.getSampleRate() : " + si.getSampleRate());
 		this.bitsPerSample = si.getBitsPerSample();
 		int bitsPerSample = this.bitsPerSample==24 ? 16 : this.bitsPerSample;
-		initAudioLine(si.getChannels(), si.getSampleRate(), bitsPerSample, true, false);
+		try
+		{
+			initAudioLine(si.getChannels(), si.getSampleRate(), bitsPerSample, true, false);
+		} 
+		catch (Exception ex)
+		{
+			this.ex = ex;
+		}
     }
     
     public int from24to16(byte[] data, int length)

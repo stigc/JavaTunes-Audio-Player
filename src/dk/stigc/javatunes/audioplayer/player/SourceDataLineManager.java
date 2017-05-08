@@ -57,7 +57,7 @@ class SourceDataLineManager
 		}
 	}	
 
-	public synchronized void initAudioLine(int channels, int rate, int bps, boolean signed, boolean bigEndian, double gain)
+	public synchronized void initAudioLine(int channels, int rate, int bps, boolean signed, boolean bigEndian, double gain) throws LineUnavailableException
 	{
   		//reuse line?
   		if (out!=null 
@@ -66,10 +66,7 @@ class SourceDataLineManager
   			&& this.bps==bps
   			&& this.signed==signed
 			&& this.bigEndian==bigEndian)
-  		{
-  			if (paused) pause();
   			return;
-  		}
 		
 		this.rate = rate;
   		this.channels = channels;
@@ -77,29 +74,18 @@ class SourceDataLineManager
   		this.signed = signed;
   		this.bigEndian = bigEndian;
   		  		
-    	try 
-    	{	
-			AudioFormat af = new AudioFormat((float)rate, bps, channels, signed, bigEndian);
-      		DataLine.Info info = new DataLine.Info(SourceDataLine.class, af);
-      		out = (SourceDataLine)AudioSystem.getLine(info);
-    		
-    		if (bufferSizeInKb>0)
-    			out.open(af, bufferSizeInKb*1024);
-    		else
-    			out.open(af);
-	   		out.start();
-	   		
-	   		setVolume(gain);
-	   		Log.write(af.toString() + ". BufferSize: " + out.getBufferSize());
-      	} 
-		catch (IllegalArgumentException ex) 
-		{   
-			String msg = "Unsupported audio format: " + rate + " / " + bps;
-			Log.write(msg);
-		}		
-		catch (Exception ex) 
-		{ 
-			Log.write ("Init audio: " + ex);
-		} 			
-	}	
+		AudioFormat af = new AudioFormat((float)rate, bps, channels, signed, bigEndian);
+  		DataLine.Info info = new DataLine.Info(SourceDataLine.class, af);
+  		out = (SourceDataLine)AudioSystem.getLine(info);
+		
+		if (bufferSizeInKb>0)
+			out.open(af, bufferSizeInKb*1024);
+		else
+			out.open(af);
+		
+		if (!paused)
+			out.start();
+   		
+   		setVolume(gain);
+	}
 }

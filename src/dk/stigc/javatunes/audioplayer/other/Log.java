@@ -5,13 +5,12 @@ import java.util.logging.Logger;
 
 public class Log
 {
-	static boolean enabled = false;
+	static boolean enabled = true;
 	static String logger = "javatunes.mediaplayer";
 	
 	public static void write(Exception ex)
 	{
-		if (enabled)
-			Logger.getLogger(logger).log(Level.WARNING, "", ex);
+		write("", ex);
 	}
 
 	public static void write(String str)
