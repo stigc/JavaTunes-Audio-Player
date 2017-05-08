@@ -19,8 +19,8 @@ public class InputstreamSelector
 		if (!isRemote)
 		{
 			File file = new File(audio.getPath());
-			if (file.exists() == false)
-				throw new Exception(audio.getPath() + " does not exists");
+			if (file.exists() == false || file.isDirectory())
+				throw new Exception(file.getAbsolutePath() + " does not exists");
 			contentLength = file.length();
 			return new FileInputStream(file);
 		}

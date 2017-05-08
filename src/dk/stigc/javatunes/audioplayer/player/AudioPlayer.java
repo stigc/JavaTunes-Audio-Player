@@ -56,6 +56,11 @@ public class AudioPlayer
 	{
 		return play(new AudioImpl(path), false, false);
 	}
+
+	public synchronized AudioInfo play(IAudio audio) throws Exception
+	{
+		return play(audio, false, false);
+	}
 	
 	public synchronized AudioInfo play(IAudio audio, boolean forced, boolean replayGainInAlbumMode) throws Exception
 	{

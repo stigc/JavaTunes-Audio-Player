@@ -12,6 +12,7 @@ import org.junit.rules.ExpectedException;
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.player.*;
 import dk.stigc.javatunes.audioplayer.tagreader.*;
+import junit.framework.Assert;
 
 public class Tests
 {
@@ -29,11 +30,41 @@ public class Tests
 	}
 
 	@Test
+	public void decoderShouldReportErrorAndRaiseTrackEnded() throws Exception
+	{
+		Track track = new Track();
+		track.path = "lincense.txt";
+		track.codec = Codec.mp3;
+		
+		final List<String> list = Collections.synchronizedList(new ArrayList<String>());
+
+		final AudioPlayer audioPlayer = new AudioPlayer();
+		audioPlayer.addHook(new IAudioPlayerHook() {
+			@Override
+			public void trackEnded(boolean finished)
+			{
+				list.add("end");
+			}
+			@Override
+			public void trackDecodingError(Exception ex)
+			{
+				list.add(ex.getMessage());	
+			}
+		});
+		
+		audioPlayer.play(track);
+		Thread.sleep(5000);
+		
+		assertTrue(list.contains("end"));
+		assertTrue(list.contains("Missing mp3 header"));
+	}
+	
+	@Test
 	public void alacWillPlay() throws Exception
 	{
 		playFor3Seconds(root + "ALAC\\08 Lilac.m4a");
 	}
-
+	
 	@Test
 	public void vorbisWillPlay() throws Exception
 	{
