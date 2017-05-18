@@ -5,7 +5,8 @@ import dk.stigc.javatunes.audioplayer.player.IAudio;
 public class Track extends AbstractTrack implements IAudio
 {
 	public String path;
-
+	public long lastModified;
+	
 	@Override
 	public double getReplayGain(boolean albumMode)
 	{
@@ -55,4 +56,10 @@ public class Track extends AbstractTrack implements IAudio
 		return album;
 	}
 
+	public void copyFrom(Track that)
+	{
+		super.copyFrom(that);
+		this.path = that.path;	
+		this.lastModified = that.lastModified;		
+	}
 }

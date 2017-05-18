@@ -40,5 +40,11 @@ public enum Codec
 		if (StringFunc.endsWithIgnoreCase(filePath, ".aac"))
 			return aacadts;						
 		return unknown;
-	}    	
+	}
+
+	public static boolean isCodecSupportedFromExtension(String filePath)
+	{
+		return extractCodecFromExtension(filePath)!=unknown;
+	}
+	
 }

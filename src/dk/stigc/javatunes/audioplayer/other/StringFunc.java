@@ -43,4 +43,28 @@ public class StringFunc
 		}
 		return true;
 	}
+	
+	public static String replace(String s, String sub, String with)
+    {
+        int i = s.indexOf(sub, 0);
+        if (i == -1)
+            return s;
+            
+    	int c=0;
+    	int tokenLength = sub.length();
+        StringBuilder buf = new StringBuilder(s.length());
+		
+        do
+        {
+            buf.append(s.substring(c,i));
+            buf.append(with);
+            c=i+tokenLength;
+            i=s.indexOf(sub,c);
+        } while (i!=-1);
+        
+        if (c<s.length())
+            buf.append(s.substring(c,s.length()));
+        
+        return buf.toString();
+    }
 }

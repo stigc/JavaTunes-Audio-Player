@@ -2,25 +2,25 @@ package dk.stigc.javatunes.audioplayer.tagreader;
 
 import java.io.*;
 
+import dk.stigc.javatunes.audioplayer.other.Common;
+
 public class FileBuffer 
 {
-	int readBytes, length, counter;
-	final int max = 1024*1024; //Max 1MB
-	public byte buffer[] = null;
+	int readBytes, fileLength;
+	final int max = 1024*1024*2; //Max 2MB
+	public byte buffer[] = new byte[max];
 	String fn;
     FileInputStream in;
-
+    BufferedInputStream bis;
+    
 	public void setFile(File file) throws FileNotFoundException
 	{
-		if (buffer==null)
-			buffer = new byte[max];
-			
 		readBytes = 0;
 		fn = file.getName();
-		length = (int)file.length();
+		fileLength = (int)file.length();
 		in = new FileInputStream(file);
-		//load init 5kb
-		loadBuffer(1024*5);
+		bis = new BufferedInputStream(in);
+		ensureBufferLoad(1024*4);
 	}
 
 	public String getFileName()
@@ -30,23 +30,19 @@ public class FileBuffer
 	
 	public void close()
 	{
-		try
-		{	
-			in.close();
-		}
-		catch(Exception e) {}
+		Common.close(bis);
 	}
 	
 	public int loadEnd(int bytes)
 	{
 		try
 		{
-			//Exciting Max?	
+			//crossing Max?	
 			if (bytes>max) 
 				bytes=max;
 							
 			in.getChannel().position(0);
-			int skip = length-bytes;
+			int skip = fileLength-bytes;
 			in.skip(skip);
         	in.read(buffer, 0, bytes);		
 			readBytes = bytes;
@@ -62,8 +58,8 @@ public class FileBuffer
 	{
 		try
 		{
-			//Mp3 id3v1 - Læs de sidste 128 bytes...
-			int skip = length-128;
+			//Mp3 id3v1 - last 128 bytes...
+			int skip = fileLength-128;
 			in.getChannel().position(0);
 			in.skip(skip);
         	in.read(buffer, 0, 128);		
@@ -72,23 +68,29 @@ public class FileBuffer
 		catch(Exception e) {}
 	}
 		
-	public int loadBuffer(int v)
+	public int ensureBufferLoad(int bytes)
 	{	
-		//Less than already read.
-		if (v<=readBytes) 
+		//Less than already loaded
+		if (bytes <= readBytes) 
 			return readBytes;
+
+		//more than file length?	
+		if (bytes > fileLength) 
+			bytes = fileLength;
 		
-		//Crossing Max?	
-		if (v>max) 
-			v=max;
-		
+		//more than max buffer size?	
+		if (bytes > max) 
+			bytes = max;
+		 
 		try
 		{	
-			//counter++;
-			//Log.write("Reading from " + readBytes + " to " + v);
-			readBytes += in.read(buffer, readBytes, v-readBytes);
+			while (readBytes < bytes)
+				readBytes += bis.read(buffer, readBytes, bytes-readBytes);
 		}
-		catch(Exception e){}
+		catch(Exception e)
+		{
+			
+		}
 		return readBytes;
 	}
 }

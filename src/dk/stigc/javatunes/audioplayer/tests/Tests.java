@@ -41,21 +41,29 @@ public class Tests
 		final AudioPlayer audioPlayer = new AudioPlayer();
 		audioPlayer.addHook(new IAudioPlayerHook() {
 			@Override
-			public void trackEnded(boolean finished)
+			public void audioInterrupted(IAudio audio)
 			{
-				list.add("end");
+				list.add("audioInterrupted");
 			}
 			@Override
-			public void trackDecodingError(Exception ex)
+			public void audioFailed(IAudio audio, Exception ex)
 			{
 				list.add(ex.getMessage());	
+				
+			}
+			@Override
+			public void audioEnded(IAudio audio)
+			{
+				list.add("audioEnded");
+				
 			}
 		});
 		
 		audioPlayer.play(track);
-		Thread.sleep(5000);
 		
-		assertTrue(list.contains("end"));
+		while(list.size()==0)
+			Thread.sleep(100);
+		
 		assertTrue(list.contains("Missing mp3 header"));
 	}
 	
@@ -101,16 +109,6 @@ public class Tests
 	}
 
 	@Test
-	public void tagReaderWillParseTags() throws Exception
-	{
-		File file = new File(root + "MP3\\01 Steady As She Goes.id3v2.2.mp3");
-		Track track = new TagReaderManager().read(file);
-		System.out.println(track.toString());
-		
-		playFor3Seconds(null, track);
-	}
-
-	@Test
 	public void pauseShouldWork() throws Exception
 	{
 		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
@@ -142,22 +140,31 @@ public class Tests
 		final AudioPlayer audioPlayer = new AudioPlayer();
 		audioPlayer.addHook(new IAudioPlayerHook() {
 			@Override
-			public void trackEnded(boolean finished)
+			public void audioInterrupted(IAudio audio)
 			{
-				try
-				{
-					if (tracks.size()>0)
-					{
-						System.out.println("Next");						
-						audioPlayer.play(tracks.pop());
-					}
-				} 
-				catch (Exception e) {}
+				// TODO Auto-generated method stub
 			}
 			@Override
-			public void trackDecodingError(Exception ex)
+			public void audioFailed(IAudio audio, Exception ex)
 			{
-				System.out.println("trackDecodingError: " + ex.getMessage());					
+				// TODO Auto-generated method stub
+			}
+			@Override
+			public void audioEnded(IAudio audio)
+			{
+				if (tracks.size()>0)
+				{
+					System.out.println("Next");						
+					try
+					{
+						audioPlayer.play(tracks.pop());
+					} 
+					catch (Exception e)
+					{
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 		});
 		

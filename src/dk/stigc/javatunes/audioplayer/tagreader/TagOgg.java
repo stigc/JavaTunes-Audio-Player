@@ -51,7 +51,7 @@ public class TagOgg extends TagBase
 	{
 		//ensure bytes in buffer
 		if (fb != null)
-			fb.loadBuffer(bufferIndex + 28 + 255); //header + max segments count
+			fb.ensureBufferLoad(bufferIndex + 28 + 255); //header + max segments count
 		
 		//Skip bytes and read segments count
 		bufferIndex += 26;
@@ -71,7 +71,7 @@ public class TagOgg extends TagBase
 
 		//ensure segments data 
 		if (fb != null)
-			fb.loadBuffer(bufferIndex + segmentsSize);		
+			fb.ensureBufferLoad(bufferIndex + segmentsSize);		
 		//Log.write("copy data to : " + commentsSize + " length is " + segmentsSize);
 		System.arraycopy(data, bufferIndex, commentsData, commentsSize, segmentsSize);
 		commentsSize += segmentsSize;

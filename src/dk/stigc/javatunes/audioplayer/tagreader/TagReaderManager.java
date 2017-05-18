@@ -80,6 +80,7 @@ public class TagReaderManager
 			}
 
 			Track track = new Track();
+			track.lastModified = file.lastModified();
 			track.copyFrom(tagReader);
 			track.path = path;
 			//tag parsing did not extract any codec.

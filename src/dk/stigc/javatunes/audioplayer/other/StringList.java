@@ -28,6 +28,12 @@ public class StringList extends ArrayList<String>
   		return super.add(v);
   	}
 
+	@Override
+  	public String toString()
+  	{
+  		return toString("/");
+  	}
+  	
   	public String toString(String seperator)
   	{
   		if (this.size()==0)
@@ -56,4 +62,19 @@ public class StringList extends ArrayList<String>
 				return false;
 		return true;
 	}	
+
+	public boolean searchIgnoreCase(String text)
+  	{
+  		for (String s: this)
+  		{
+  			if (s.toLowerCase().indexOf(text)!=-1)
+  				return true;
+  		}	
+  		return false;
+  	}
+
+	public int compareToIgnoreCase(StringList that)
+	{
+		return this.toString().compareToIgnoreCase(that.toString());
+	}
 }

@@ -3,7 +3,7 @@ package dk.stigc.javatunes.audioplayer.other;
 public abstract class AbstractTrack
 {
 	public int year, trackNumber, discNumber;
-	public String title, album, lyrics;
+	public String title = "", album = "", lyrics = "";
 	public StringList artists = new StringList();
 	public StringList genres = new StringList();
 
@@ -32,13 +32,13 @@ public abstract class AbstractTrack
 
 	public void copyFrom(AbstractTrack that)
 	{
-		this.title = that.title;	
 		this.artists = new StringList(that.artists);
+		this.genres = new StringList(that.genres);
+		this.title = that.title;	
 		this.album = that.album;
 		this.year = that.year;
 		this.trackNumber = that.trackNumber;
 		this.discNumber = that.discNumber;
-		this.genres = new StringList(that.genres);
 		this.embededCover = that.embededCover;
 		this.replaygain = that.replaygain;
 		this.replaygainAlbumMode = that.replaygainAlbumMode;
@@ -50,18 +50,23 @@ public abstract class AbstractTrack
 	{
 		replaygain = REPLAY_GAIN_NOT_SET;
 		replaygainAlbumMode = REPLAY_GAIN_NOT_SET;
-		title = null;
-		album = null;
+		title = "";
+		album = "";
 		artists.clear();
 		genres.clear();		
 		year = 0;
 		trackNumber = 0;
 		discNumber = 0;
 		embededCover = false;
-		lyrics = null;
+		lyrics = "";
 		codec = null;
 	}	
-	
+  	
+	public boolean hasReplayGain()
+  	{
+  		return replaygain!=REPLAY_GAIN_NOT_SET || replaygainAlbumMode!=REPLAY_GAIN_NOT_SET;
+  	}
+  	
 	public boolean isTheSame(AbstractTrack o)
 	{
 		return this.album.equals(o.album)

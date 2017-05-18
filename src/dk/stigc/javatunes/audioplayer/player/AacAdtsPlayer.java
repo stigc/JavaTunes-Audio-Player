@@ -4,7 +4,6 @@ import net.sourceforge.jaad.aac.Decoder;
 import net.sourceforge.jaad.aac.SampleBuffer;
 import net.sourceforge.jaad.adts.ADTSDemultiplexer;
 
-
 public class AacAdtsPlayer extends BasePlayer
 {
     public void decode() throws Exception

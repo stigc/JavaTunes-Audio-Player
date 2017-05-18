@@ -14,6 +14,7 @@ abstract public class BasePlayer extends Thread
   	public static boolean noOutput = false; //Used for decoding speed test
   	protected volatile boolean running = true;  
   	public AudioInfo audioInfo;
+  	private IAudio audio;
 	private int speed = 1;
 	private int bps, rate, channels;
 	private long totalBytes;
@@ -35,6 +36,7 @@ abstract public class BasePlayer extends Thread
 			, double startGain, boolean replayGainInAlbumMode)
 	{
 		setPriority(MAX_PRIORITY);
+		this.audio = audio;
 		this.audioInfo = audioInfo;
 		this.startGain = startGain;		
 
@@ -209,22 +211,29 @@ abstract public class BasePlayer extends Thread
 	
 	public void run() 
 	{
-		boolean finished = false;
+		Exception ex = null;
+		
 		try 
 		{
 			decode();
-			finished = true;
 		} 
-		catch (Exception ex) 
+		catch (Exception ex2) 
 		{
-			if (hook != null)
-				hook.trackDecodingError(ex);
+			ex = ex2;
 		}
 		finally 
 		{
-			if (hook != null)
-				hook.trackEnded(finished);
 			Common.close(bin);
+		}
+		
+		if (hook != null)
+		{
+			if (ex != null)
+				hook.audioFailed(audio, ex);
+			else if (running)
+				hook.audioEnded(audio);
+			else
+				hook.audioInterrupted(audio);
 		}
 	}  
 		

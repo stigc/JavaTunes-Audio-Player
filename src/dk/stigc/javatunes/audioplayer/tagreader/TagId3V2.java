@@ -259,7 +259,7 @@ public class TagId3V2  extends TagBase
 
 			//hent mere fra fil
 			if (fb!=null)
-				bufferLoaded = fb.loadBuffer(alltagssize);
+				bufferLoaded = fb.ensureBufferLoad(alltagssize);
 			
 			for (int i=0; i<length; i++) 
 			{
