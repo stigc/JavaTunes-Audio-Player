@@ -15,21 +15,32 @@ Features
 
 Usage
 
-		File file = new File("my file");
-		Track track = new TagReaderManager().read(file);
-		System.out.println(track.toString());
-		
-		AudioPlayer audioPlayer = new AudioPlayer();
-		AudioInfo ai = audioPlayer.play(track, true, false);
-				
-		while (audioPlayer.playing)
-		{
-			Thread.sleep(1000);	
-			synchronized (ai)
-			{
-				System.out.println(ai.toString());
-			}
+	File file = new File(root + "WavPack\\8bit.wv");
+	Track track = new TagReaderManager().read(file);
+	System.out.println(track.toString());
+	
+	final CountDownLatch latch = new CountDownLatch(1);
+	
+	AudioPlayer audioPlayer = new AudioPlayer();
+	audioPlayer.addHook(new IAudioPlayerHook() {
+		@Override
+		public void audioInterrupted(IAudio audio) {
+			latch.countDown();
 		}
+		@Override
+		public void audioFailed(IAudio audio, Exception ex) {
+			latch.countDown();
+		}
+		@Override
+		public void audioEnded(IAudio audio) {
+			latch.countDown();
+		}
+	});
+	
+	AudioInfo ai = audioPlayer.play(track, false);
+
+	while (latch.await(1, TimeUnit.SECONDS) == false)
+		System.out.println(ai.toString());
 
 or without parsing tags, 1 line of code
 
