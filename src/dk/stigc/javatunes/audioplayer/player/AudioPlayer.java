@@ -64,7 +64,12 @@ public class AudioPlayer
     
     public boolean isPlaying()
     {
-    	return player.running;
+    	return !player.ended;
+    }
+
+    public boolean isPaused()
+    {
+    	return dlm.paused;
     }
     
 	public synchronized AudioInfo play(String path) throws Exception
@@ -79,7 +84,7 @@ public class AudioPlayer
 	
 	public synchronized AudioInfo play(IAudio audio, boolean isAlbumMode) throws Exception
 	{
-    	if (player.hasEnded == false)
+    	if (player.ended == false)
     		stop();
     	
     	audioInfo = new AudioInfo();
@@ -150,18 +155,23 @@ public class AudioPlayer
     	return volume;
     }
 
-	public void enableFalcOutput(OutputStream os) throws IOException
+	public void enableFlacOutput(OutputStream os) throws IOException
 	{
 		dlm.enableFlacOutput(null, os);
 	}
 	
-	public void enableFalcOutput(File file) throws IOException
+	public void enableFlacOutput(File file) throws IOException
 	{
 		dlm.enableFlacOutput(file, null);
 	}
 	
-	public void stopFlacOutput() throws IOException
+	public void finishFlacOutput() throws IOException
 	{
-		dlm.stopFlacOutput();
+		dlm.finishFlacOutput();
+	}
+
+	public void setOutputToMixer(boolean value)
+	{
+		dlm.setOutputToMixer(value);
 	}
 }

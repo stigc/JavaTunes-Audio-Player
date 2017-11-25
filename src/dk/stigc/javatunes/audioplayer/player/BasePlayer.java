@@ -19,7 +19,7 @@ abstract public class BasePlayer extends Thread
 	
   	protected BufferedInputStream bin;
   	protected volatile boolean running = true;
-  	protected volatile boolean hasEnded = false; 
+  	protected volatile boolean ended = false; 
 
   	private IAudio audio;
 	private int bps, rate, channels;
@@ -177,7 +177,7 @@ abstract public class BasePlayer extends Thread
 		}
 		finally 
 		{
-			hasEnded = true;
+			ended = true;
 			Common.close(bin);
 		}
 		

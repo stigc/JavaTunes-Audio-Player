@@ -11,7 +11,7 @@ Tags supported
 
 Features
 
-	SHOUTcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres
+	SHOUTcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres, FLAC encoder
 
 Usage
 
@@ -19,31 +19,29 @@ Usage
 	Track track = new TagReaderManager().read(file);
 	System.out.println(track.toString());
 	
-	final CountDownLatch latch = new CountDownLatch(1);
+	AudioPlayer player = new AudioPlayer();
+	AudioInfo ai = player.play(track, false);
 	
-	AudioPlayer audioPlayer = new AudioPlayer();
-	audioPlayer.addHook(new IAudioPlayerHook() {
-		@Override
-		public void audioInterrupted(IAudio audio) {
-			latch.countDown();
-		}
-		@Override
-		public void audioFailed(IAudio audio, Exception ex) {
-			latch.countDown();
-		}
-		@Override
-		public void audioEnded(IAudio audio) {
-			latch.countDown();
-		}
-	});
-	
-	AudioInfo ai = audioPlayer.play(track, false);
-
-	while (latch.await(1, TimeUnit.SECONDS) == false)
+	while (player.isPlaying()) 
+	{
 		System.out.println(ai.toString());
+		Thread.sleep(1000);
+	}
 
 or without parsing tags, 1 line of code
 
 	new AudioPlayer().play("my file");
+
+Pipe everything to FLAC file
+
+	AudioPlayer player = new AudioPlayer();
+	player.enableFlacOutput(new File("output.flac"));
+	player.setOutputToMixer(false); //uncomment to disable sound in speakers 
+	player.play("ALAC\\08 Lilac.m4a");
+	
+	while (player.isPlaying()) 
+		Thread.sleep(1000);
+
+	player.finishFlacOutput();
 
 Note that seeking is not supported.

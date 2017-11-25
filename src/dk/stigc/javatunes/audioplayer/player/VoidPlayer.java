@@ -4,7 +4,7 @@ public class VoidPlayer extends BasePlayer
 {
 	public VoidPlayer()
 	{
-		hasEnded = true;
+		ended = true;
 	}
 	
 	public void decode()

@@ -3,6 +3,8 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Logger;
 
@@ -18,6 +20,7 @@ import org.junit.rules.ExpectedException;
 
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.player.*;
+import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
 public class Tests
 {
@@ -174,11 +177,11 @@ public class Tests
 			}
 		});
 		
-		audioPlayer.enableFalcOutput(new File("new-flac-output.flac"));
+		audioPlayer.enableFlacOutput(new File("new-flac-output.flac"));
 		audioPlayer.play(tracks.pop());
 		Thread.sleep(15000);
 		
-		audioPlayer.stopFlacOutput();
+		audioPlayer.finishFlacOutput();
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 		
 	}
@@ -201,6 +204,7 @@ public class Tests
 	public void mp3WillPlay() throws Exception
 	{
 		playFor3Seconds(root + "MP3\\id3v2.4 UTF-8 Nanna.mp3");
+
 	}
 	@Test
 	public void shoutCastWillPlay() throws Exception
@@ -234,6 +238,36 @@ public class Tests
 		audioPlayer.stop();
 	}
 	
+	@Test
+	public void GitHubDemoTest() throws Exception
+	{
+		File file = new File(root + "WavPack\\8bit.wv");
+		Track track = new TagReaderManager().read(file);
+		System.out.println(track.toString());
+		
+		AudioPlayer player = new AudioPlayer();
+		AudioInfo ai = player.play(track, false);
+		
+		while (player.isPlaying()) 
+		{
+			System.out.println(ai.toString());
+			Thread.sleep(1000);
+		}
+	}
+	
+	@Test
+	public void GitHubDemoTest2() throws Exception
+	{
+		AudioPlayer player = new AudioPlayer();
+		player.enableFlacOutput(new File("output.flac"));
+		player.setOutputToMixer(false); //uncomment to disable sound in speakers 
+		player.play(root + "ALAC\\08 Lilac.m4a");
+		
+		while (player.isPlaying()) 
+			Thread.sleep(1000);
+
+		player.finishFlacOutput();
+	}
 	
 	@Test
 	public void pauseShouldWork() throws Exception

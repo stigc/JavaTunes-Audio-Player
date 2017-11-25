@@ -11,8 +11,9 @@ import dk.stigc.javatunes.audioplayer.other.*;
 
 class SourceDataLineManager implements IPlayBackAPI
 {
+	private boolean outputToMixer = true;
 	private AudioFormat audioFormat;
-	private volatile boolean paused;
+	public volatile boolean paused;
 	private SourceDataLine out;
 	private int bufferSizeInKb;
 	FlacEncoder flacEncoder;
@@ -25,7 +26,12 @@ class SourceDataLineManager implements IPlayBackAPI
 		flacEncoder = new FlacEncoder(file, os);
 	}
 	
-	public synchronized void stopFlacOutput() throws IOException
+	public synchronized void setOutputToMixer(boolean value)
+	{
+		outputToMixer = value;
+	}
+	
+	public synchronized void finishFlacOutput() throws IOException
 	{
 		flacEncoder.stop();
 		flacEncoder = null;
@@ -58,6 +64,9 @@ class SourceDataLineManager implements IPlayBackAPI
 	
 	public synchronized int write(byte[] data, int start, int length)
   	{	
+		if (!outputToMixer)
+			return length;
+		
 		return out.write(data, start, length);
   	}
 	
