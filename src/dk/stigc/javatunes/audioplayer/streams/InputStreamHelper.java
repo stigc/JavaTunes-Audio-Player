@@ -12,19 +12,10 @@ public class InputStreamHelper
 	public int contentLength;
 	public int icyMetaInt;
 	public String icyName, icyGenre;
+	public String redirectLocation;
 	public int httpResponseCode;
 	public String programName = "JavaTunes";
-	private static volatile boolean proxyIsInitialized;
 	public InputStreamHelper ()	{}
-
-	public boolean isStreamingRadio()
-	{
-		return contentLength <= 0
-				|| icyMetaInt > 0 
-				|| icyName != null
-				|| icyGenre != null;
-		
-	}
 
 	public InputStreamHelper (int timeout)
 	{
@@ -86,6 +77,8 @@ public class InputStreamHelper
 	    	}
 	    	if (lc.startsWith("icy-genre:"))
 	    		icyGenre = line.substring(10).trim();
+	    	if (lc.startsWith("location:"))
+	    		redirectLocation = line.substring(9).trim();
 	    	if (lc.startsWith("http/"))
 	    		httpResponseCode = Integer.parseInt(lc.split(" ")[1]);
 	    		
@@ -148,7 +141,12 @@ public class InputStreamHelper
 	    if (httpResponseCode == 404)
 	    	throw new Response404Exception();
 	    
-	    Log.write("HTTP: " + httpResponseCode);
+	    if (httpResponseCode == 302)
+	    {
+	    	Log.write("HTTP 302 redirect: " + redirectLocation);
+	    	return httpGetWithIcyMetadata(redirectLocation);
+	    }
+	    
 	    
 	    //contentLength = 1024*100;
 	    	

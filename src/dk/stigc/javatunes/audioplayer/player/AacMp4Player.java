@@ -28,7 +28,7 @@ public class AacMp4Player extends BasePlayer
 		final SampleBuffer buf = new SampleBuffer();
 		buf.setBigEndian(false);
 		audioInfo.lengthInSeconds = (int)movie.getDuration();
-		setBitRateFromFileLength();
+		trySetBitRateFromFileLength();
 
 		final Decoder dec = new Decoder(track.getDecoderSpecificInfo());
 

@@ -1,48 +1,67 @@
 package dk.stigc.javatunes.audioplayer.player;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import javax.sound.sampled.*;
+import javax.sound.sampled.AudioFormat.Encoding;
 
 import dk.stigc.javatunes.audioplayer.other.*;
 
-class SourceDataLineManager
+class SourceDataLineManager implements IPlayBackAPI
 {
+	private AudioFormat audioFormat;
 	private volatile boolean paused;
-	public volatile SourceDataLine out;
-	private int bps, channels, rate;                           
-	private boolean bigEndian, signed;
+	private SourceDataLine out;
 	private int bufferSizeInKb;
+	FlacEncoder flacEncoder;
 	
-	public void stopLine()
+	public synchronized void enableFlacOutput(File file, OutputStream os) throws IOException
+	{
+		if (flacEncoder != null)
+			throw new RuntimeException("Cannot start new output before last is closed");
+		
+		flacEncoder = new FlacEncoder(file, os);
+	}
+	
+	public synchronized void stopFlacOutput() throws IOException
+	{
+		flacEncoder.stop();
+		flacEncoder = null;
+	}
+	
+	public synchronized void discardDataInLine()
 	{
 		if (out!=null)
 		{
+			//discards data...
 			out.flush();
 		}
 	}
 	
-	public synchronized void pause()
+	public void pause()
 	{
-		paused =! paused;
-
-		if (out == null)
-			return;
-
-		if (paused)
-		{
+		paused = true;
+		
+		if (out != null)
 			out.stop();
-		}
-		else
-		{
-			out.start();
-		}		
 	}
 	
-	public int write(byte[] data, int start, int length)
+	public void start()
+	{
+		paused = false;
+		
+		if (out != null)
+			out.start();
+	}
+	
+	public synchronized int write(byte[] data, int start, int length)
   	{	
 		return out.write(data, start, length);
   	}
 	
-	public void setVolume(double gain) 
+	public synchronized void setVolume(double gain) 
 	{
 		if (out!=null)
 		{
@@ -56,36 +75,86 @@ class SourceDataLineManager
 			gainControl.setValue(dB);
 		}
 	}	
-
-	public synchronized void initAudioLine(int channels, int rate, int bps, boolean signed, boolean bigEndian, double gain) throws LineUnavailableException
+	
+	public synchronized void initAudioLine(int channels, int rate, int bps, boolean signed, double gain) throws LineUnavailableException
 	{
   		//reuse line?
   		if (out!=null 
-  			&& this.rate==rate 
-  			&& this.channels==channels
-  			&& this.bps==bps
-  			&& this.signed==signed
-			&& this.bigEndian==bigEndian)
+  			&& audioFormat.getSampleRate()==rate 
+  			&& audioFormat.getChannels()==channels
+  			&& audioFormat.getSampleSizeInBits()==bps
+  			&& (audioFormat.getEncoding()==Encoding.PCM_SIGNED) == signed)
   			return;
-		
-		this.rate = rate;
-  		this.channels = channels;
-  		this.bps = bps;
-  		this.signed = signed;
-  		this.bigEndian = bigEndian;
-  		  		
-		AudioFormat af = new AudioFormat((float)rate, bps, channels, signed, bigEndian);
-  		DataLine.Info info = new DataLine.Info(SourceDataLine.class, af);
+  		
+  		audioFormat= new AudioFormat((float)rate, bps, channels, signed, false);
+  		DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
   		out = (SourceDataLine)AudioSystem.getLine(info);
 		
+  		Log.write("AudioFormat set to " + audioFormat);
+  				
 		if (bufferSizeInKb>0)
-			out.open(af, bufferSizeInKb*1024);
+			out.open(audioFormat, bufferSizeInKb*1024);
 		else
-			out.open(af);
+			out.open(audioFormat);
 		
+		setVolume(gain);
+
+		//if someone has pressed pause before decoder has called initAudioLine
 		if (!paused)
 			out.start();
-   		
-   		setVolume(gain);
+	}
+
+	@Override
+	public synchronized void writeToFlacOutput(byte[] pcm, int length, int bps, int rate, int channels)
+	{
+		if (flacEncoder == null)
+			return;
+		
+		//supported format 16bps 22500/41000 hz and 1/2 channels
+		if (bps != 16 || (rate != 44100 && rate != 22050) || (channels != 1 && channels != 2))
+			return;
+
+		if (channels == 1)
+		{
+			//Log.write("Converting to stereo");
+			byte[] temp = new byte[length*2];
+			for (int i=0; i<length; i+=2)
+			{
+				temp[i*2] = pcm[i];
+				temp[i*2+1] = pcm[i+1];
+				temp[i*2+2] = pcm[i];
+				temp[i*2+3] = pcm[i+1];
+			}
+			pcm = temp;
+			length *= 2;
+		}
+		
+		if (rate == 22050)
+		{
+			//Log.write("Converting to 44.100");
+			byte[] temp = new byte[pcm.length*2];
+			for (int i=0; i<length; i+=4)
+			{
+				temp[i*2+0] = pcm[i];
+				temp[i*2+1] = pcm[i+1];
+				temp[i*2+2] = pcm[i+2];
+				temp[i*2+3] = pcm[i+3];
+				temp[i*2+4] = pcm[i];
+				temp[i*2+5] = pcm[i+1];
+				temp[i*2+6] = pcm[i+2];
+				temp[i*2+7] = pcm[i+3];				
+			}
+			pcm = temp;
+			length *= 2;
+		}
+		
+		try
+		{
+			flacEncoder.write(pcm, length);
+		} 
+		catch (IOException e)
+		{
+			throw new RuntimeException(e);
+		}
 	}
 }

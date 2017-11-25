@@ -406,7 +406,6 @@ public class TagId3V2  extends TagBase
 		picindex = nextNull + 1;									
 		
 		int picsize = size-(picindex-index);
-		Log.write("picsize:" +picsize);
 		imgData = new byte[picsize];
 		//arraycopy(Object src, int srcPos, Object dest, int destPos, int length) 
 		System.arraycopy(v, picindex, imgData, 0, picsize);		

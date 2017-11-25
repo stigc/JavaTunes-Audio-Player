@@ -35,7 +35,7 @@ public class WavPackPlayer extends BasePlayer
 		synchronized (audioInfo)
 		{
 			audioInfo.lengthInSeconds = (int)(samples/samplerate);
-			setBitRateFromFileLength();
+			trySetBitRateFromFileLength();
 		}
 		
 		boolean signed = true;

@@ -63,7 +63,17 @@ public class StringList extends ArrayList<String>
 		return true;
 	}	
 
-	public boolean searchIgnoreCase(String text)
+	public boolean containsIgnoreCase(String text)
+  	{
+  		for (String s: this)
+  		{
+  			if (s.compareToIgnoreCase(text) == 0)
+  				return true;
+  		}	
+  		return false;
+  	}
+	
+	public boolean searchWithLowerCase(String text)
   	{
   		for (String s: this)
   		{

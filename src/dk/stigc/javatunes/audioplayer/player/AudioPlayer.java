@@ -9,9 +9,9 @@ public class AudioPlayer
 {
 	IAudioPlayerHook hook;
 	private volatile int volume;
-    public volatile boolean paused;
     public AudioInfo audioInfo;
     private BasePlayer player = new VoidPlayer();
+    private SourceDataLineManager dlm = new SourceDataLineManager();
     
 	public AudioPlayer()
 	{
@@ -23,17 +23,19 @@ public class AudioPlayer
 		this.hook = hook;
 	}    
 
-    public synchronized void setSpeed(int speed)
-    {
-   		player.setSpeed(speed);    		
-    }
-
     public synchronized void pause() 
     {
-   		paused = !paused;
-    	player.pause();
+   		dlm.pause();
     }
-
+    
+    /**
+     * Use this to continue after paused
+     */
+    public synchronized void start() 
+    {
+   		dlm.start();
+    }
+    
     public synchronized void setVolume (int volume) 
     {
     	if (volume<0 || volume>100)
@@ -41,36 +43,53 @@ public class AudioPlayer
     	
     	this.volume = volume;
     	double gain = volume/100.0;
-   		player.setVolume(gain);
+    	dlm.setVolume(gain);
     }
     
-    public synchronized void stop(boolean forced)
+    public synchronized void stop()
     {	
-		player.stop(forced);
-
-		if (paused)
-			pause();
+    	Log.write("Stopping");
+    	
+    	player.stopThread();
+    	
+   		dlm.discardDataInLine();
     }
+   
+    public synchronized void stopAndWaitUntilPlayerThreadEnds() throws InterruptedException
+    {	
+    	stop();
 
+    	player.join();
+    }
+    
+    public boolean isPlaying()
+    {
+    	return player.running;
+    }
+    
 	public synchronized AudioInfo play(String path) throws Exception
 	{
-		return play(new AudioImpl(path), false, false);
+		return play(new AudioImpl(path), false);
 	}
 
 	public synchronized AudioInfo play(IAudio audio) throws Exception
 	{
-		return play(audio, false, false);
+		return play(audio, false);
 	}
 	
-	public synchronized AudioInfo play(IAudio audio, boolean forced, boolean replayGainInAlbumMode) throws Exception
+	public synchronized AudioInfo play(IAudio audio, boolean isAlbumMode) throws Exception
 	{
-    	stop(forced);
+    	if (player.hasEnded == false)
+    		stop();
     	
     	audioInfo = new AudioInfo();
     	audioInfo.codec = audio.getCodec();
+    	
     	InputstreamSelector inputStreamSelector = new InputstreamSelector();
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
-    	
+		audioInfo.lengthInBytes = inputStreamSelector.contentLength;
+		audioInfo.granules = inputStreamSelector.granules;
+		
     	extractMp4ContainerCodec(audio, inputStreamSelector);
     	
     	switch (audioInfo.codec)
@@ -101,12 +120,14 @@ public class AudioPlayer
 		double gain = volume/100.0;
 		
 		player.hook = hook;
-		player.setData(is, audio, audioInfo, gain, replayGainInAlbumMode);	
-		player.audioInfo.contenLength = inputStreamSelector.contentLength;
-		player.audioInfo.granules = inputStreamSelector.granules;
+		player.playBackApi = dlm;
+		player.initialize(is, audio, audioInfo, gain, isAlbumMode);	
 		player.start();
+		
+		dlm.start();
+		
+		Log.write(player.getClass().getSimpleName() + " -> " + audio.getPath());
 
-		Log.write("Player started: " + player.getClass().getName());
 		return audioInfo;
 	}
 
@@ -128,4 +149,19 @@ public class AudioPlayer
     {
     	return volume;
     }
+
+	public void enableFalcOutput(OutputStream os) throws IOException
+	{
+		dlm.enableFlacOutput(null, os);
+	}
+	
+	public void enableFalcOutput(File file) throws IOException
+	{
+		dlm.enableFlacOutput(file, null);
+	}
+	
+	public void stopFlacOutput() throws IOException
+	{
+		dlm.stopFlacOutput();
+	}
 }

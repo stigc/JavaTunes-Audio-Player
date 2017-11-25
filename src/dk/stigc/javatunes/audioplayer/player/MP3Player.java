@@ -11,7 +11,6 @@ public class MP3Player extends BasePlayer
 
     private void initMP3Player() throws Exception
     {
-    	Log.write("initMP3Player");
 		bitstream = new Bitstream(bin);      	        
 	    decoder = new Decoder();
 	        
@@ -21,13 +20,13 @@ public class MP3Player extends BasePlayer
 		if (h==null)
 			throw new Exception("Missing mp3 header");
 		 
-		int playLength = (int)(h.total_ms((int)audioInfo.contenLength)/1000);
+		int playLength = (int)(h.total_ms((int)audioInfo.lengthInBytes)/1000);
 		vbr = h.vbr();
 		int bitrate = h.bitrate()/1000;
 
 		//Hmm no length in header. Calculate from filesize and CBR header.
-		if (playLength==0 && audioInfo.contenLength>0 && bitrate>0)
-			playLength = (int)audioInfo.contenLength/((bitrate/8)*1000);
+		if (playLength==0 && audioInfo.lengthInBytes>0 && bitrate>0)
+			playLength = (int)audioInfo.lengthInBytes/((bitrate/8)*1000);
 		
 		audioInfo.kbps = bitrate;
 		audioInfo.lengthInSeconds = playLength;
@@ -73,9 +72,11 @@ public class MP3Player extends BasePlayer
 			//Log.write("mp3.4");
 			
 			if (!init)
+			{
 				initAudioLine(decoder.getOutputChannels(), decoder.getOutputFrequency()
 						, 16, true, false);	
-			init = true;
+				init = true;
+			}
 			
 			int len = output.getBufferLength();
 			byte[] b = toByteArray(output.getBuffer(), 0, len);

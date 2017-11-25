@@ -235,11 +235,13 @@ public class OggPlayer extends BasePlayer
       {
     	  if (audioInfo.granules > 0) 
     		  audioInfo.lengthInSeconds = audioInfo.granules / vi.rate;
-    	  else if (audioInfo.contenLength > 0)
-    		  audioInfo.lengthInSeconds = (int)(audioInfo.contenLength * 8 / vi.bitrate_nominal);
+    	  else if (audioInfo.lengthInBytes > 0)
+    		  audioInfo.lengthInSeconds = (int)(audioInfo.lengthInBytes * 8 / vi.bitrate_nominal);
     	  
-    	  setBitRateFromFileLength();
-    	  audioInfo.kbps = vi.bitrate_nominal/1000;
+    	  trySetBitRateFromFileLength();
+    	  
+    	  if (audioInfo.kbps==0)
+    		  audioInfo.kbps = vi.bitrate_nominal/1000;
       }
 	
 	//Log.write("3");

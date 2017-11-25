@@ -72,7 +72,7 @@ public class IcyMetadataInputStream extends InputStream
 		{
 			synchronized(audioInfo)
 			{
-				audioInfo.icyNowPlaying = nowPlaying;
+				audioInfo.icyStreamTitle = nowPlaying;
 			}
 		}
 	}

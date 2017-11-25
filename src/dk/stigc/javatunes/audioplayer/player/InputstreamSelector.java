@@ -62,6 +62,9 @@ public class InputstreamSelector
     		}
     		*/
     	}
+
+		audioInfo.icyName = ish.icyName;
+		audioInfo.icyGenre = ish.icyGenre;
 		
 		if (ish.icyMetaInt > 0)
 		{			
@@ -70,13 +73,7 @@ public class InputstreamSelector
 					new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
 			is = icy;
 		}
-		
-		if (ish.isStreamingRadio())
-		{
-			audioInfo.icyName = ish.icyName;
-			audioInfo.icyGenre = ish.icyGenre;
-		}
-		
+
 		return is;
 	}
 	

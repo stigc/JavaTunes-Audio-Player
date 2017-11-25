@@ -86,7 +86,7 @@ public class InputStreamWithTagReader extends BufferedInputStream
 			
 			synchronized (audioInfo)
 			{
-				audioInfo.icyNowPlaying = nowPlaying;
+				audioInfo.icyStreamTitle = nowPlaying;
 			}
 		}
 	}	

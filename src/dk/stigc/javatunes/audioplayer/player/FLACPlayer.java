@@ -30,7 +30,7 @@ public class FLACPlayer extends BasePlayer implements PCMProcessor
 		decoder.addPCMProcessor(this);
 		decoder.readMetadata();
 		calculatePlayLength(decoder.getStreamInfo());
-		setBitRateFromFileLength();
+		trySetBitRateFromFileLength();
 		
 		while (true)
 		{
