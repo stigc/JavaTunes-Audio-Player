@@ -15,7 +15,7 @@ Features
 
 Usage
 
-	File file = new File(root + "WavPack\\8bit.wv");
+	File file = new File("WavPack\\8bit.wv");
 	Track track = new TagReaderManager().read(file);
 	System.out.println(track.toString());
 	
