@@ -1,5 +1,7 @@
 package dk.stigc.javatunes.audioplayer.player;
 
+import javax.sound.sampled.LineUnavailableException;
+
 import dk.stigc.javatunes.audioplayer.other.*;
 import javazoom.jl.decoder.*;
 
@@ -51,43 +53,36 @@ public class MP3Player extends BasePlayer
 	 * @return true if there are no more frames to decode, false otherwise.
 	 */
 	boolean init = false;
-	protected boolean decodeFrame() throws JavaLayerException
+	protected boolean decodeFrame() throws DecoderException, BitstreamException, LineUnavailableException
 	{		
-		try
+		if (!running) 
+			return false;
+
+		Header h = bitstream.readFrame();
+
+		if (h==null) return false;
+		int bitrateNow =  h.bitrate_instant();
+		
+		if (vbr)
+			audioInfo.addVariableBitrate(bitrateNow);
+
+		//Log.write("mp3.3");
+		// sample buffer set when decoder constructed
+		SampleBuffer output = (SampleBuffer)decoder.decodeFrame(h, bitstream);
+		//Log.write("mp3.4");
+		
+		if (!init)
 		{
-			if (!running) 
-				return false;
-
-			Header h = bitstream.readFrame();
-
-			if (h==null) return false;
-			int bitrateNow =  h.bitrate_instant();
-			
-			if (vbr)
-				audioInfo.addVariableBitrate(bitrateNow);
-
-			//Log.write("mp3.3");
-			// sample buffer set when decoder constructed
-			SampleBuffer output = (SampleBuffer)decoder.decodeFrame(h, bitstream);
-			//Log.write("mp3.4");
-			
-			if (!init)
-			{
-				initAudioLine(decoder.getOutputChannels(), decoder.getOutputFrequency()
-						, 16, true, false);	
-				init = true;
-			}
-			
-			int len = output.getBufferLength();
-			byte[] b = toByteArray(output.getBuffer(), 0, len);
-			write(b, len*2);	
-																			
-			bitstream.closeFrame();
-		}		
-		catch (Exception ex)
-		{
-			throw new JavaLayerException("mp3.decodeFrame ", ex);
+			initAudioLine(decoder.getOutputChannels(), decoder.getOutputFrequency()
+					, 16, true, false);	
+			init = true;
 		}
+		
+		int len = output.getBufferLength();
+		byte[] b = toByteArray(output.getBuffer(), 0, len);
+		write(b, len*2);	
+																		
+		bitstream.closeFrame();
 
 		return true;
 	}

@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import javaFlacEncoder.*;
+import javaFlacEncoder.EncodingConfiguration.SubframeType;
 
 public class FlacEncoder
 {

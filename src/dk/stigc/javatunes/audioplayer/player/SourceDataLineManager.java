@@ -18,6 +18,11 @@ class SourceDataLineManager implements IPlayBackAPI
 	private int bufferSizeInKb;
 	FlacEncoder flacEncoder;
 	
+	public boolean flacOutputIsEnabled()
+	{
+		return flacEncoder != null;
+	}
+	
 	public synchronized void enableFlacOutput(File file, OutputStream os) throws IOException
 	{
 		if (flacEncoder != null)
@@ -33,8 +38,11 @@ class SourceDataLineManager implements IPlayBackAPI
 	
 	public synchronized void finishFlacOutput() throws IOException
 	{
-		flacEncoder.stop();
+		FlacEncoder temp = flacEncoder;
+		
 		flacEncoder = null;
+		
+		temp.stop();
 	}
 	
 	public synchronized void discardDataInLine()

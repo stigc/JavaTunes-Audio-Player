@@ -90,7 +90,7 @@ public class AudioPlayer
     	audioInfo = new AudioInfo();
     	audioInfo.codec = audio.getCodec();
     	
-    	InputstreamSelector inputStreamSelector = new InputstreamSelector();
+    	InputSelector inputStreamSelector = new InputSelector();
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
 		audioInfo.lengthInBytes = inputStreamSelector.contentLength;
 		audioInfo.granules = inputStreamSelector.granules;
@@ -137,7 +137,7 @@ public class AudioPlayer
 	}
 
 	private void extractMp4ContainerCodec(IAudio audio,
-			InputstreamSelector inputStreamSelector)
+			InputSelector inputStreamSelector)
 			throws FileNotFoundException
 	{
     	if (audioInfo.codec == Codec.mp4container 
@@ -155,6 +155,11 @@ public class AudioPlayer
     	return volume;
     }
 
+	public boolean flacOutputIsEnabled()
+	{
+		return dlm.flacOutputIsEnabled();
+	}
+	
 	public void enableFlacOutput(OutputStream os) throws IOException
 	{
 		dlm.enableFlacOutput(null, os);

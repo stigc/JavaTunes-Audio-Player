@@ -1,60 +1,44 @@
 package dk.stigc.javatunes.audioplayer.streams;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.BitSet;
-import java.util.Properties;
+import java.nio.charset.Charset;
 
-import net.sourceforge.jaad.aac.Decoder;
-import net.sourceforge.jaad.adts.ADTSDemultiplexer;
-
-import dk.stigc.javatunes.audioplayer.other.*;
-import dk.stigc.javatunes.audioplayer.tagreader.*;
+import dk.stigc.javatunes.audioplayer.other.Codec;
+import dk.stigc.javatunes.audioplayer.player.AudioInfo;
 
 public class InputStreamWithTypeParser extends InputStream
 {
 	InputStream in;
-	FileOutputStream os;
 	int bytesInBuffer, readFromBuffer;
-	boolean identifyingMode;
 	private byte[] buffer;
+	public boolean isEXTM3U;
 	
-	private boolean startsWith(String tag) throws UnsupportedEncodingException
+	private boolean bufferStartsWith(String tag)
 	{
-		byte[] tagAsBytes = tag.getBytes("ISO-8859-1");
+		Charset cs = Charset.forName("ISO-8859-1");
+		byte[] tagAsBytes = tag.getBytes(cs);
 		for (int i=0; i<tagAsBytes.length; i++)
 			if (tagAsBytes[i] != buffer[i])
 				return false;
 		return true;
 	}
 	
-	public InputStreamWithTypeParser(InputStream in)
+	public InputStreamWithTypeParser(InputStream in, AudioInfo audioInfo)
 	{
 		this.in = in;
+		
+		buffer = new byte[1024*10];
+		bytesInBuffer = InputStreamHelper.readToArray(in, buffer);
+		
+		if (bufferStartsWith("OggS"))
+			audioInfo.codec = Codec.vorbis;
+		else if (isAdts())
+			audioInfo.codec = Codec.aacadts;
+		else if (bufferStartsWith("#EXTM3U"))
+			isEXTM3U = true;
 	}
 
-	public InputStreamType tryIdentifyStream() throws IOException
-	{
-		buffer = new byte[1024*10];
-		InputStreamType result = InputStreamType.UNKNOWN;
-		bytesInBuffer = InputStreamHelper.readToArray(in, buffer);
-		//os.write(buffer);
-		
-		if (startsWith("#EXTM3U"))
-			result =  InputStreamType.EXTM3U;
-		if (startsWith("OggS"))
-			result =  InputStreamType.OGG;
-		else if (isAdts())
-			result =  InputStreamType.AACADTS;
-		
-		Log.write("Type is " + result);
-		return result;
-	}
-	
 	private int getBufferIndex(int index)
 	{
 		return buffer[index] & 0xff;

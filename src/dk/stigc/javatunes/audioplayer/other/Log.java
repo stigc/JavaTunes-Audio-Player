@@ -21,7 +21,14 @@ public class Log
 
 	public static void write(String msg, Exception ex)
 	{
+		
 		if (enabled)
+		{
+//			StringWriter sw = new StringWriter();
+//			ex.printStackTrace(new PrintWriter(sw));
+//			String exceptionDetails = sw.toString();
+			  
 			Logger.getLogger(logger).log(Level.WARNING, msg, ex);
+		}
 	}
 }

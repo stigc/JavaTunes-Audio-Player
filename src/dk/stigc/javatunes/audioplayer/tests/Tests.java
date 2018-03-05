@@ -2,6 +2,12 @@ package dk.stigc.javatunes.audioplayer.tests;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -270,6 +276,28 @@ public class Tests
 	}
 	
 	@Test
+	public void Philharmonics() throws Exception
+	{
+		File path = new File("F:\\musik\\Agnes Obel\\Philharmonics");
+
+	    File [] files = path.listFiles();
+	    
+	    for (File file : files)
+	    {
+			AudioPlayer player = new AudioPlayer();
+			player.enableFlacOutput(new File(file.getName()));
+			player.setOutputToMixer(false); //uncomment to disable sound in speakers 
+			//player.play("F:\\musik\\Agnes Obel\\Philharmonics\\Agnes Obel - 01 - Falling, Catching.flac");
+			player.play(file.getAbsolutePath());
+			while (player.isPlaying()) 
+				Thread.sleep(1000);
+	
+			player.finishFlacOutput();
+	    }
+	}
+	
+	
+	@Test
 	public void pauseShouldWork() throws Exception
 	{
 		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
@@ -399,4 +427,5 @@ public class Tests
 		
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
+
 }

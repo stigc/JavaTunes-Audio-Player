@@ -1,15 +1,15 @@
 package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
-
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.streams.*;
 
-public class InputstreamSelector
+public class InputSelector
 {
-	public int granules;
 	public long contentLength;
 	public boolean isRemote;
+	
+	public int granules;
 	private int bufferSize = 6500; //Most Ogg files last page is within this size.
     
 	public InputStream getInputStream(IAudio audio, AudioInfo audioInfo) throws Exception
@@ -18,82 +18,52 @@ public class InputstreamSelector
 		
 		if (!isRemote)
 		{
+			//Todo: unknown codec?
 			File file = new File(audio.getPath());
 			if (file.exists() == false || file.isDirectory())
 				throw new Exception(file.getAbsolutePath() + " does not exists");
 			contentLength = file.length();
+			
+			if (audio.getCodec() == Codec.vorbis)
+				findOggGranules(audio);
+			
 			return new FileInputStream(file);
 		}
 		
-		//if (song.getCodec()==Codec.vorbis && song.getLengthInSeconds()==0)
-		//	detectVorbisPlayLength(song);
-
+		if (audio.getCodec() == Codec.vorbis)
+			findOggGranulesOnRemoteFile(audio);
+		
 		InputStreamHelper ish = new InputStreamHelper();
-		InputStream is = ish.httpGetWithIcyMetadata(audio.getPath());
+		InputStream is = ish.getHttpWithIcyMetadata(audio, audioInfo);
 		contentLength = ish.contentLength;
 		
     	if (audioInfo.codec == Codec.unknown)
     	{
-    		is = new InputStreamWithTypeParser(is);
-    		InputStreamType type = ((InputStreamWithTypeParser)is).tryIdentifyStream();
+    		InputStreamWithTypeParser parser = new InputStreamWithTypeParser(is, audioInfo);
     		
-    		if (type == InputStreamType.AACADTS)
-    			audioInfo.codec = Codec.aacadts;
-    		else if (type == InputStreamType.OGG)
-    			audioInfo.codec = Codec.vorbis;    		
-    		else
-    			audioInfo.codec = Codec.mp3;	    	
+    		if (parser.isEXTM3U)
+    			throw new Exception("EXTM3U not supported");
     		
-    		/*
-    		if (type == InputStreamType.EXTM3U)
-    		{
-    			Common.close(is);
-    			is = ish.httpGetWithIcyMetadata(song.file);
-    			PlayListReader plr = new M3uReader();
-    			plr.read("dummy", is);
-    			
-    			Log.write("Reading EXTM3U with song count " + plr.remotes.size());
-    			if (plr.remotes.size() > 0)
-    			{
-	    			Song newSong = plr.remotes.get(0);
-	    			song.copyFrom(newSong);
-	    			return getInputStream(newSong);
-    			}
-    		}
-    		*/
+    		is = parser;
     	}
-
-		audioInfo.icyName = ish.icyName;
-		audioInfo.icyGenre = ish.icyGenre;
+    	
+    	if (audioInfo.codec == Codec.unknown)
+    		audioInfo.codec = Codec.mp3;
 		
 		if (ish.icyMetaInt > 0)
-		{			
-			//InputStreamWithTagReader is2 = new InputStreamWithTagReader(is, song);
-			IcyMetadataInputStream icy = 
-					new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
-			is = icy;
-		}
+			is = new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
 
 		return is;
 	}
 	
-	/*
-	void detectVorbisPlayLength(IAudio song)
-	{
-		if (song.isRemote())
-			detectPlayLengthRemote(song);
-		else
-			detectPlayLengthFile(song);
-	}*/
-	
-	void detectPlayLengthRemote(IAudio song)
+	void findOggGranulesOnRemoteFile(IAudio song)
 	{
 		try
 		{
 			InputStreamHelper ish = new InputStreamHelper();
 			byte[] data = new byte[bufferSize];
 			String range = "bytes=-" + bufferSize;
-			InputStream is = ish.getRemoteInputStream(song.getPath(), range);
+			InputStream is = ish.getHttp(song.getPath(), range);
 			
 			if (ish.contentLength >= 0)
 			{
@@ -109,7 +79,7 @@ public class InputstreamSelector
         }  		
 	}
 	
-	void detectPlayLengthFile(IAudio song)
+	void findOggGranules(IAudio song)
 	{
 		try
 		{
