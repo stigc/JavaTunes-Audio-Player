@@ -20,6 +20,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,7 +31,10 @@ import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
 public class Tests
 {
-	static 
+	String root = "C:\\data\\Projekter\\Eclipse.workspace\\JavaTunes\\other\\Test audio files\\";
+
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception 
 	{
 	   Logger logger = Logger.getLogger("javatunes.mediaplayer");
 	   logger.setUseParentHandlers(false);
@@ -38,8 +42,6 @@ public class Tests
 	   handler.setFormatter(new LogFormatter());
 	   logger.addHandler(handler);
 	}
-	
-	String root = "C:\\data\\Projekter\\Eclipse.workspace\\JavaTunes\\other\\Test audio files\\";
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -85,9 +87,7 @@ public class Tests
 		audioPlayer.play(track);
 		
 		while(list.size()==0)
-			Thread.sleep(50);
-		
-		Thread.sleep(1000);
+			Thread.sleep(100);
 		
 		assertEquals(1, list.size());
 		assertTrue(list.contains("Missing mp3 header"));
@@ -130,7 +130,7 @@ public class Tests
 	}
 	
 	@Test
-	public void TwoAudioPlayers() throws Exception
+	public void twoAudioPlayers() throws Exception
 	{
 		AudioPlayer ap1 = new AudioPlayer();
 		ap1.play(root + "AAC\\03 Down The Nightclub.m4a");
@@ -145,54 +145,46 @@ public class Tests
 	}
 
 	@Test
-	public void AudioPlayerWithFlacEncoder() throws Exception
+	public void gaplessPlaybackWillWork() throws Exception
 	{
-		final ArrayDeque<String> tracks = new ArrayDeque<String>();
-		tracks.add(root + "gapless.test.samples\\Vorbis\\01 Track01.ogg");
-		tracks.add(root + "gapless.test.samples\\Vorbis\\02 Track02.ogg");
-		tracks.add("http://178.33.104.250:80/stream");
+		TestPlayer player = new TestPlayer();
+		player.tracks.add(root + "gapless.test.samples\\Vorbis\\01 Track01.ogg");
+		player.tracks.add(root + "gapless.test.samples\\Vorbis\\02 Track02.ogg");
+		player.tracks.add(root + "gapless.test.samples\\Vorbis\\03 Track03.ogg");
+		player.start();
 		
-		final AudioPlayer audioPlayer = new AudioPlayer();
-		audioPlayer.addHook(new IAudioPlayerHook() {
-			@Override
-			public void audioInterrupted(IAudio audio)
-			{
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void audioFailed(IAudio audio, Exception ex)
-			{
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void audioEnded(IAudio audio)
-			{
-				if (tracks.size()>0)
-				{
-					System.out.println("Next");						
-					try
-					{
-						audioPlayer.play(tracks.pop());
-					} 
-					catch (Exception e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		});
-		
-		audioPlayer.enableFlacOutput(new File("new-flac-output.flac"));
-		audioPlayer.play(tracks.pop());
-		Thread.sleep(15000);
-		
-		audioPlayer.finishFlacOutput();
-		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
-		
+		while (player.noMoreTracks == false)
+		{
+			player.printInfo();
+			Thread.sleep(1000);
+		}
 	}
 	
-	
+	@Test
+	public void shoutCastWillWork() throws Exception
+	{
+		TestPlayer player = new TestPlayer();
+		player.tracks.add("http://178.33.104.250:80/stream");
+		player.tracks.add("http://streaming.radio24syv.dk/pls/24syv_96_IR.pls");
+		player.tracks.add("http://live-icy.gss.dr.dk:8000/A/A03L.mp3.m3u");
+		player.tracks.add("http://51.254.29.40:80/stream3");
+		player.tracks.add("http://178.33.45.203:80/stream2");
+		
+		player.start();
+		
+		int seconds = 0;
+		while (player.noMoreTracks == false)
+		{
+			seconds++;
+			Thread.sleep(1000);
+			player.printInfo();
+			if (seconds % 5 == 0)
+				player.playNextTrack();
+		}
+		
+		player.stop();
+	}
+
 	@Test
 	public void globalReplayGain() throws Exception
 	{
@@ -212,12 +204,6 @@ public class Tests
 		playFor3Seconds(root + "MP3\\id3v2.4 UTF-8 Nanna.mp3");
 
 	}
-	@Test
-	public void shoutCastWillPlay() throws Exception
-	{
-		playFor3Seconds("http://178.33.104.250:80/stream");
-	}
-	
 
 	@Test
 	public void bps24WillWork() throws Exception
@@ -240,7 +226,6 @@ public class Tests
 		
 		audioPlayer.play(root + "AAC\\03 Down The Nightclub.m4a");
 		Thread.sleep(1000);
-		
 		audioPlayer.stop();
 	}
 	
@@ -249,19 +234,18 @@ public class Tests
 	{
 		File file = new File(root + "WavPack\\8bit.wv");
 		Track track = new TagReaderManager().read(file);
-		System.out.println(track.toString());
+		write(track.toString());
 		
 		AudioPlayer player = new AudioPlayer();
 		AudioInfo ai = player.play(track, false);
 		
 		while (player.isPlaying()) 
 		{
-			System.out.println(ai.toString());
+			write(ai.toString());
 			Thread.sleep(1000);
 		}
 	}
 	
-	@Test
 	public void GitHubDemoTest2() throws Exception
 	{
 		AudioPlayer player = new AudioPlayer();
@@ -276,44 +260,22 @@ public class Tests
 	}
 	
 	@Test
-	public void Philharmonics() throws Exception
-	{
-		File path = new File("F:\\musik\\Agnes Obel\\Philharmonics");
-
-	    File [] files = path.listFiles();
-	    
-	    for (File file : files)
-	    {
-			AudioPlayer player = new AudioPlayer();
-			player.enableFlacOutput(new File(file.getName()));
-			player.setOutputToMixer(false); //uncomment to disable sound in speakers 
-			//player.play("F:\\musik\\Agnes Obel\\Philharmonics\\Agnes Obel - 01 - Falling, Catching.flac");
-			player.play(file.getAbsolutePath());
-			while (player.isPlaying()) 
-				Thread.sleep(1000);
-	
-			player.finishFlacOutput();
-	    }
-	}
-	
-	
-	@Test
 	public void pauseShouldWork() throws Exception
 	{
 		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
 		AudioPlayer audioPlayer = new AudioPlayer();
 		audioPlayer.play(path);
-		System.out.println("pause");
+		write("pause");
 		audioPlayer.pause();
 		audioPlayer.pause(); //allowed more than 1..
 		Thread.sleep(2000);
 		
-		System.out.println("pause");
+		write("pause");
 		audioPlayer.start();
 		audioPlayer.start(); //allowed more than 1..
 		Thread.sleep(2000);
 		
-		System.out.println("pause and play");
+		write("pause and play");
 		audioPlayer.pause();
 		audioPlayer.play(path);
 		Thread.sleep(2000);
@@ -321,48 +283,7 @@ public class Tests
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
 
-	@Test
-	public void hookWillWorkAndThisWillPlayGapless() throws Exception
-	{
-		final ArrayDeque<String> tracks = new ArrayDeque<String>();
-		tracks.add(root + "gapless.test.samples\\Vorbis\\01 Track01.ogg");
-		tracks.add(root + "gapless.test.samples\\Vorbis\\02 Track02.ogg");
-		tracks.add(root + "gapless.test.samples\\Vorbis\\03 Track03.ogg");
-		
-		final AudioPlayer audioPlayer = new AudioPlayer();
-		audioPlayer.addHook(new IAudioPlayerHook() {
-			@Override
-			public void audioInterrupted(IAudio audio)
-			{
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void audioFailed(IAudio audio, Exception ex)
-			{
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void audioEnded(IAudio audio)
-			{
-				if (tracks.size()>0)
-				{
-					System.out.println("Next");						
-					try
-					{
-						audioPlayer.play(tracks.pop());
-					} 
-					catch (Exception e)
-					{
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
-		});
-		
-		audioPlayer.play(tracks.pop());
-		Thread.sleep(15000);
-	}
+	
 	
 	@Test
 	public void displayMixerInfo()
@@ -370,8 +291,8 @@ public class Tests
 	  Mixer.Info [] mixersInfo = AudioSystem.getMixerInfo();
 
 	  for (Mixer.Info mixerInfo : mixersInfo)
-	   {
-	     System.out.println("Mixer: " + mixerInfo.getName());
+	  {
+		 write("Mixer: " + mixerInfo.getName());
 
 	     Mixer mixer = AudioSystem.getMixer(mixerInfo);
 
@@ -388,7 +309,7 @@ public class Tests
 
 	private static void showLineInfo(final Line.Info lineInfo)
 	{
-	  System.out.println("  " + lineInfo.toString());
+		write("  " + lineInfo.toString());
 
 	  if (lineInfo instanceof DataLine.Info)
 	   {
@@ -396,7 +317,7 @@ public class Tests
 
 	     AudioFormat [] formats = dataLineInfo.getFormats();
 	     for (final AudioFormat format : formats)
-	       System.out.println("    " + format.toString());
+	    	 write("    " + format.toString());
 	   }
 	}
 	
@@ -407,7 +328,7 @@ public class Tests
 	
 	private void playFor3Seconds(String path, Track track) throws Exception
 	{
-		System.out.println("Testing: " + path);
+		write("Testing: " + path);
 		
 		AudioPlayer audioPlayer = new AudioPlayer();
 		
@@ -421,11 +342,15 @@ public class Tests
 			Common.sleep(1000);	
 			synchronized (ai)
 			{
-				System.out.println(" * " + ai.toString());
+				write(" * " + ai.toString());
 			}
 		}
 		
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
 
+	private static void write(String msg)
+	{
+		System.out.println("      " + msg);
+	}
 }

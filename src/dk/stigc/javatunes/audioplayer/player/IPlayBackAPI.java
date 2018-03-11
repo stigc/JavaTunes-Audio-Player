@@ -1,7 +1,5 @@
 package dk.stigc.javatunes.audioplayer.player;
 
-import java.io.IOException;
-
 import javax.sound.sampled.LineUnavailableException;
 
 public interface IPlayBackAPI

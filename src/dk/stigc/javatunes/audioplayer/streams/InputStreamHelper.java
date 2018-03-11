@@ -35,9 +35,9 @@ public class InputStreamHelper
 		return getRemoteInputStreamImpl(conn);
 	}
 	
-	public InputStream getHttpWithIcyMetadata(IAudio audio, AudioInfo audioInfo) throws Exception
+	public InputStream getHttpWithIcyMetadata(String url, AudioInfo audioInfo) throws Exception
 	{
-		URLConnection conn = createConnection(audio.getPath());
+		URLConnection conn = createConnection(url);
         //String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
         conn.setRequestProperty("User-Agent", "JavaTunesPlayer"); 
         conn.setRequestProperty("Icy-MetaData", "1");

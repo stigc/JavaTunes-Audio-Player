@@ -39,14 +39,11 @@ abstract public class BasePlayer extends Thread
 
 		bin = new BufferedInputStream(in);
 		
-		if (true)
+		double db = audio.getReplayGain(isAlbumMode);
+		if (db!=0 && Math.abs(db)<50)
 		{
-			double db = audio.getReplayGain(isAlbumMode);
-			if (db!=0 && Math.abs(db)<50)
-			{
-				Log.write("rpgain is " + db + " db");
-				tagReplayGain = Math.pow(10, db / 20.0);
-			}
+			Log.write("rpgain is " + db + " db");
+			tagReplayGain = Math.pow(10, db / 20.0);
 		}
 	}
 
@@ -196,6 +193,7 @@ abstract public class BasePlayer extends Thread
 		else
 		{
 			Log.write("audioInterrupted");
+
 			if (hook != null)				
 				hook.audioInterrupted(audio);
 		}

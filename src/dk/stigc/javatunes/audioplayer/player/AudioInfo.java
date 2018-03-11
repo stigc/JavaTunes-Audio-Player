@@ -53,7 +53,8 @@ public class AudioInfo
 		int tmp = getVariableKbps();
 		if (tmp > 0)
 			s += ", kbpsVaraible=" + tmp;
-		s += ", contenLength=" + lengthInBytes;
+		s += ", lengthInBytes=" + lengthInBytes;
+		s += ", codec=" + codec;
 		
 		if (icyName != null)
 			s += ", icyName=" + icyName;

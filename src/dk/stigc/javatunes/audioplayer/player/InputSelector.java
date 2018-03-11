@@ -1,6 +1,8 @@
 package dk.stigc.javatunes.audioplayer.player;
 
 import java.io.*;
+import java.nio.charset.Charset;
+
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.streams.*;
 
@@ -24,25 +26,36 @@ public class InputSelector
 				throw new Exception(file.getAbsolutePath() + " does not exists");
 			contentLength = file.length();
 			
-			if (audio.getCodec() == Codec.vorbis)
+			if (audioInfo.lengthInSeconds == 0 && audio.getCodec() == Codec.vorbis)
 				findOggGranules(audio);
 			
 			return new FileInputStream(file);
 		}
 		
-		if (audio.getCodec() == Codec.vorbis)
+		return getHttpInputStream(audio.getPath(), audio, audioInfo);
+	}
+
+	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfo audioInfo) throws Exception, UnsupportedEncodingException, IOException
+	{
+		if (audioInfo.lengthInSeconds == 0 && audio.getCodec() == Codec.vorbis)
 			findOggGranulesOnRemoteFile(audio);
 		
 		InputStreamHelper ish = new InputStreamHelper();
-		InputStream is = ish.getHttpWithIcyMetadata(audio, audioInfo);
+		InputStream is = ish.getHttpWithIcyMetadata(url, audioInfo);
 		contentLength = ish.contentLength;
 		
     	if (audioInfo.codec == Codec.unknown)
     	{
     		InputStreamWithTypeParser parser = new InputStreamWithTypeParser(is, audioInfo);
     		
-    		if (parser.isEXTM3U)
-    			throw new Exception("EXTM3U not supported");
+    		if (parser.isPlayList)
+    		{
+    			Common.close(parser);
+    			String url2 = parsePlayListFindFirstPath(parser);
+    			if (url2 == null)
+    				throw new Exception("Cannot read .m3u or .pls");
+    			return getHttpInputStream(url2, audio, audioInfo);
+    		}
     		
     		is = parser;
     	}
@@ -52,8 +65,28 @@ public class InputSelector
 		
 		if (ish.icyMetaInt > 0)
 			is = new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
-
 		return is;
+	}
+
+	//Very simple .pls and .m3u parser.
+	private String parsePlayListFindFirstPath(InputStreamWithTypeParser parser)
+			throws UnsupportedEncodingException, IOException
+	{
+		String path = null;
+		BufferedReader br = new BufferedReader(new InputStreamReader(parser, "UTF-8"));
+		for (int i=0; i<100 && path == null; i++)
+		{
+			String line = br.readLine();
+			if (line == null)
+				break;
+			if (line.indexOf("File")==0 && line.indexOf("=")>0)
+				path = line.substring(line.indexOf("=")+1); 
+			else if (line.indexOf("http://") == 0)
+				path = line;
+			else if (line.indexOf("http2://") == 0)
+				path = line;
+		}
+		return path;
 	}
 	
 	void findOggGranulesOnRemoteFile(IAudio song)

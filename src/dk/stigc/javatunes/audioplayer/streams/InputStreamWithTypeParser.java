@@ -12,7 +12,7 @@ public class InputStreamWithTypeParser extends InputStream
 	InputStream in;
 	int bytesInBuffer, readFromBuffer;
 	private byte[] buffer;
-	public boolean isEXTM3U;
+	public boolean isPlayList;
 	
 	private boolean bufferStartsWith(String tag)
 	{
@@ -35,8 +35,12 @@ public class InputStreamWithTypeParser extends InputStream
 			audioInfo.codec = Codec.vorbis;
 		else if (isAdts())
 			audioInfo.codec = Codec.aacadts;
-		else if (bufferStartsWith("#EXTM3U"))
-			isEXTM3U = true;
+		else if (bufferStartsWith("#EXTM3U") 
+				|| bufferStartsWith("[playlist]")
+				|| bufferStartsWith("http://")
+				|| bufferStartsWith("https://")
+				)
+			isPlayList = true;
 	}
 
 	private int getBufferIndex(int index)

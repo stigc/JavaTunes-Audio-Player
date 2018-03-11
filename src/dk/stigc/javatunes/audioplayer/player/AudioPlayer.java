@@ -18,9 +18,10 @@ public class AudioPlayer
 		this.setVolume(100);		
 	}  
 	
-	public void addHook(IAudioPlayerHook hook)
+	public IAudioPlayerHook addHook(IAudioPlayerHook hook)
 	{
 		this.hook = hook;
+		return hook;
 	}    
 
     public synchronized void pause() 
@@ -94,7 +95,7 @@ public class AudioPlayer
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
 		audioInfo.lengthInBytes = inputStreamSelector.contentLength;
 		audioInfo.granules = inputStreamSelector.granules;
-		
+
     	extractMp4ContainerCodec(audio, inputStreamSelector);
     	
     	switch (audioInfo.codec)
@@ -121,8 +122,8 @@ public class AudioPlayer
 			default:
 				player = new MP3Player();				
 		}
-		
-		double gain = volume/100.0;
+   
+    	double gain = volume/100.0;
 		
 		player.hook = hook;
 		player.playBackApi = dlm;
@@ -178,5 +179,11 @@ public class AudioPlayer
 	public void setOutputToMixer(boolean value)
 	{
 		dlm.setOutputToMixer(value);
+	}
+
+	public void waitForIdle()
+	{
+		// TODO Auto-generated method stub
+		
 	}
 }
