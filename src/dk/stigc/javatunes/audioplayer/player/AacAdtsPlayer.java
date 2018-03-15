@@ -16,7 +16,6 @@ public class AacAdtsPlayer extends BasePlayer
 		
 		while(true) 
 		{
-			
 			b = adts.readNextFrame();
 			dec.decodeFrame(b, buf);
 

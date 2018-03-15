@@ -29,31 +29,59 @@ public class Track extends AbstractTrack implements IAudio
 		return codec;
 	}
 
+	@Override
 	public String toString()
 	{
-		String r = "Artist: " + getArtist() + "\nAlbum: " + getAlbumFormated() + "\nTitle: "
-				+ title + "\nTrack: " + getFormatedTrackNumber() + "\nYear: "
-				+ getFormatedYear() + "\nGenre: " + getGenre() + "\nLocation: "
-				+ path + "\n";
-
-		return r;
-	}
-
-	public String getFormatedTrackNumber()
-	{
-		if (trackNumber == 0)
-			return "";
-		else if (trackNumber < 10)
-			return "0" + trackNumber;
-		else
-			return "" + trackNumber;
-	}
-
-	public String getAlbumFormated()
-	{
-		if (discNumber > 1)
-			return album + " (DISC " + discNumber + ")";
-		return album;
+		StringBuilder builder = new StringBuilder();
+		builder.append("Track [artists=");
+		builder.append(artists);
+		builder.append(", album=");
+		builder.append(getAlbumFormated());				
+		builder.append(", title=");
+		builder.append(title);			
+		builder.append(", genres=");
+		builder.append(genres);	
+		if (year>0)
+		{
+			builder.append(", year=");
+			builder.append(getFormatedYear());
+		}
+		if (trackNumber>0)
+		{
+			builder.append(", trackNumber=");
+			builder.append(getFormatedTrackNumber());
+		}
+		if (lyrics != null && lyrics.length()>0)
+		{
+			builder.append(", lyrics=");
+			builder.append(lyrics);
+		}
+		if (codec != null)
+		{
+			builder.append(", codec=");
+			builder.append(codec);
+		}
+		if (embededCover)
+		{
+			builder.append(", embededCover");
+		}
+		if (isKaraoke)
+		{
+			builder.append(", karaoke");
+		}
+		if (replaygain != REPLAY_GAIN_NOT_SET)
+		{
+			builder.append(", replaygain=");
+			builder.append(replaygain);
+		}
+		if (replaygainAlbumMode != REPLAY_GAIN_NOT_SET)
+		{
+			builder.append(", replaygainAlbumMode=");
+			builder.append(replaygainAlbumMode);
+		}
+		
+		builder.append("]");
+		return builder.toString();
 	}
 
 	public void copyFrom(Track that)

@@ -20,16 +20,23 @@ public abstract class AbstractTrack
 		return "" + year;
 	}
 
-	public String getGenre()
+	public String getFormatedTrackNumber()
 	{
-		return genres.toString(" / ");
-	}
-	
-	public String getArtist()
-	{
-		return artists.toString(" / ");
+		if (trackNumber == 0)
+			return "";
+		else if (trackNumber < 10)
+			return "0" + trackNumber;
+		else
+			return "" + trackNumber;
 	}
 
+	public String getAlbumFormated()
+	{
+		if (discNumber > 1)
+			return album + " (DISC " + discNumber + ")";
+		return album;
+	}
+	
 	public void copyFrom(AbstractTrack that)
 	{
 		this.artists = new StringList(that.artists);

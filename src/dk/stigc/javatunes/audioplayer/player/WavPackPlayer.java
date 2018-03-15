@@ -31,12 +31,7 @@ public class WavPackPlayer extends BasePlayer
 		//Log.write("WavpackGetSampleRate: "  + samplerate);
 		//Log.write("WavpackGetMode: "  + mode);
 		
-		
-		synchronized (audioInfo)
-		{
-			audioInfo.lengthInSeconds = (int)(samples/samplerate);
-			trySetBitRateFromFileLength();
-		}
+		audioInfo.setLengthInSeconds((int)(samples/samplerate));
 		
 		boolean signed = true;
 		int tmp = bitsps;

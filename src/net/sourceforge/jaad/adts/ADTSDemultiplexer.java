@@ -43,7 +43,7 @@ public class ADTSDemultiplexer {
 			left--;
 			if(i==0xFF) {
 				i = in.read();
-				if(((i>>4)&0xF)==0xF) found = true;
+				if((i&0xF6)==0xF0) found = true;
 				in.unread(i);
 			}
 		}

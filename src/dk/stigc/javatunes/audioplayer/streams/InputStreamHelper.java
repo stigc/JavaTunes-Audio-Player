@@ -5,7 +5,7 @@ import java.util.*;
 import java.io.*;
 
 import dk.stigc.javatunes.audioplayer.other.*;
-import dk.stigc.javatunes.audioplayer.player.AudioInfo;
+import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 import dk.stigc.javatunes.audioplayer.player.IAudio;
 
 public class InputStreamHelper
@@ -35,7 +35,7 @@ public class InputStreamHelper
 		return getRemoteInputStreamImpl(conn);
 	}
 	
-	public InputStream getHttpWithIcyMetadata(String url, AudioInfo audioInfo) throws Exception
+	public InputStream getHttpWithIcyMetadata(String url, AudioInfoInternal audioInfo) throws Exception
 	{
 		URLConnection conn = createConnection(url);
         //String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
@@ -51,7 +51,7 @@ public class InputStreamHelper
         return is;
 	}
 	
-	private void setCodecFromContentType(AudioInfo audioInfo)
+	private void setCodecFromContentType(AudioInfoInternal audioInfo)
 	{
         if (contentType != null)
         {
@@ -60,7 +60,13 @@ public class InputStreamHelper
         	else if (contentType.equals("audio/aac"))
         		audioInfo.codec = Codec.aac;
         	else if (contentType.equals("audio/ogg"))
-        		audioInfo.codec = Codec.vorbis;
+        		audioInfo.codec = Codec.ogg;
+        	else if (contentType.equals("audio/ogg; codecs=vorbis"))
+        		audioInfo.codec = Codec.vorbis;        	
+        	else if (contentType.equals("audio/ogg; codecs=opus"))
+        		audioInfo.codec = Codec.opus;
+        	else if (contentType.equals("audio/ogg; codecs=flac"))
+        		audioInfo.codec = Codec.flac;        	
         	else if (contentType.equals("audio/flac"))
         		audioInfo.codec = Codec.flac;
         	else if (contentType.equals("audio/mp3"))

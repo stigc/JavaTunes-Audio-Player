@@ -1,5 +1,6 @@
 package dk.stigc.javatunes.audioplayer.other;
 
+
 public enum Codec
 {
 	unknown(""),
@@ -10,8 +11,10 @@ public enum Codec
 	aac("AAC"),
 	aacadts("AAC ADTS"),
 	alac("Apple Lossless"),
-	//container
-	mp4container("MP4") //transforms -> aac, alac
+	opus("Opus"),
+	//containers
+	mp4container("MP4"), //transforms -> aac, alac
+	ogg("Ogg") //transforms -> aac, alac
 	;
 	
     public String name;
@@ -38,7 +41,9 @@ public enum Codec
 		if (StringFunc.endsWithIgnoreCase(filePath, ".m4a"))
 			return mp4container;						
 		if (StringFunc.endsWithIgnoreCase(filePath, ".aac"))
-			return aacadts;						
+			return aacadts;		
+		if (StringFunc.endsWithIgnoreCase(filePath, ".opus"))
+			return opus;	
 		return unknown;
 	}
 

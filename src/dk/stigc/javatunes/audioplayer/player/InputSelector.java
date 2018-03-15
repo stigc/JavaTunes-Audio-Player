@@ -12,9 +12,9 @@ public class InputSelector
 	public boolean isRemote;
 	
 	public int granules;
-	private int bufferSize = 6500; //Most Ogg files last page is within this size.
+	private int bufferSize = 32*1024; //Most Ogg files last page is within this size.
     
-	public InputStream getInputStream(IAudio audio, AudioInfo audioInfo) throws Exception
+	public InputStream getInputStream(IAudio audio, AudioInfoInternal audioInfo) throws Exception
 	{
 		isRemote = StringFunc.startsWithIgnoreCase(audio.getPath(), "http");
 		
@@ -26,7 +26,9 @@ public class InputSelector
 				throw new Exception(file.getAbsolutePath() + " does not exists");
 			contentLength = file.length();
 			
-			if (audioInfo.lengthInSeconds == 0 && audio.getCodec() == Codec.vorbis)
+			if (audio.getCodec() == Codec.vorbis
+					|| audio.getCodec() == Codec.opus
+							|| audio.getCodec() == Codec.ogg)
 				findOggGranules(audio);
 			
 			return new FileInputStream(file);
@@ -35,16 +37,18 @@ public class InputSelector
 		return getHttpInputStream(audio.getPath(), audio, audioInfo);
 	}
 
-	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfo audioInfo) throws Exception, UnsupportedEncodingException, IOException
+	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfoInternal audioInfo) throws Exception, UnsupportedEncodingException, IOException
 	{
-		if (audioInfo.lengthInSeconds == 0 && audio.getCodec() == Codec.vorbis)
+		if (audio.getCodec() == Codec.vorbis
+				|| audio.getCodec() == Codec.opus
+						|| audio.getCodec() == Codec.ogg)
 			findOggGranulesOnRemoteFile(audio);
 		
 		InputStreamHelper ish = new InputStreamHelper();
 		InputStream is = ish.getHttpWithIcyMetadata(url, audioInfo);
 		contentLength = ish.contentLength;
 		
-    	if (audioInfo.codec == Codec.unknown)
+    	if (audioInfo.codec == Codec.unknown || audioInfo.codec == Codec.ogg)
     	{
     		InputStreamWithTypeParser parser = new InputStreamWithTypeParser(is, audioInfo);
     		
@@ -137,8 +141,10 @@ public class InputSelector
 
 	void findGranulesInBuffer(byte[] data)
 	{
+		//find OggS
 		for (int i=bufferSize-4; i>=0; i--)
-		if (data[i]==0x4F && data[i+1]==0x67 && data[i+2]==0x67 && data[i+3]==0x53) 
+		if (data[i]==0x4F && data[i+1]==0x67 
+		&& data[i+2]==0x67 && data[i+3]==0x53) 
 		{	
 			granules = read32(data,i+6);
 			Log.write("Ogg granules " + granules);

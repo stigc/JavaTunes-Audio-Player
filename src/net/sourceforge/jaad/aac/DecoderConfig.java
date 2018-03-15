@@ -33,7 +33,7 @@ public class DecoderConfig implements Constants {
 		frameLengthFlag = false;
 		sbrPresent = false;
 		downSampledSBR = false;
-		sbrEnabled = false;
+		sbrEnabled = true;
 		sectionDataResilience = false;
 		scalefactorResilience = false;
 		spectralDataResilience = false;

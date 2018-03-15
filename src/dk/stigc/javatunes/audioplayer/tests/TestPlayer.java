@@ -2,7 +2,7 @@ package dk.stigc.javatunes.audioplayer.tests;
 
 import java.util.ArrayDeque;
 
-import dk.stigc.javatunes.audioplayer.player.AudioInfo;
+import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 import dk.stigc.javatunes.audioplayer.player.AudioPlayer;
 import dk.stigc.javatunes.audioplayer.player.IAudio;
 import dk.stigc.javatunes.audioplayer.player.IAudioPlayerHook;
@@ -10,7 +10,6 @@ import dk.stigc.javatunes.audioplayer.player.IAudioPlayerHook;
 public class TestPlayer implements IAudioPlayerHook
 {
 	AudioPlayer audioPlayer;
-	public AudioInfo audioInfo;
 	public ArrayDeque<String> tracks = new ArrayDeque<String>();
 	public volatile boolean noMoreTracks;
 	
@@ -30,7 +29,7 @@ public class TestPlayer implements IAudioPlayerHook
 	
 		try
 		{
-			audioInfo = audioPlayer.play(tracks.pop());
+			audioPlayer.play(tracks.pop());
 		} 
 		catch (Exception e)
 		{
@@ -58,15 +57,12 @@ public class TestPlayer implements IAudioPlayerHook
 
 	public void start() throws Exception
 	{
-		audioInfo = audioPlayer.play(tracks.pop());
+		audioPlayer.play(tracks.pop());
 	}
 
 	public void printInfo()
 	{
-		synchronized (audioInfo)
-		{
-			System.out.println(audioInfo.toString());	
-		}
+		System.out.println(audioPlayer.getAudioInfo().toString());
 	}
 
 	public void stop()

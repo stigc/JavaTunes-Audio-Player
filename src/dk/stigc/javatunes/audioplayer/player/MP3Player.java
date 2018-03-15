@@ -1,44 +1,21 @@
 package dk.stigc.javatunes.audioplayer.player;
 
-import javax.sound.sampled.LineUnavailableException;
-
-import dk.stigc.javatunes.audioplayer.other.*;
 import javazoom.jl.decoder.*;
 
 public class MP3Player extends BasePlayer
 {	  
 	private Bitstream bitstream;
 	private Decoder	decoder; 
-	private boolean vbr;
-
-    private void initMP3Player() throws Exception
-    {
-		bitstream = new Bitstream(bin);      	        
-	    decoder = new Decoder();
-	        
-		//http://urn1350.net/
-		//Læser bitrate og længde
-		Header h = bitstream.readFrame();
-		if (h==null)
-			throw new Exception("Missing mp3 header");
-		 
-		int playLength = (int)(h.total_ms((int)audioInfo.lengthInBytes)/1000);
-		vbr = h.vbr();
-		int bitrate = h.bitrate()/1000;
-
-		//Hmm no length in header. Calculate from filesize and CBR header.
-		if (playLength==0 && audioInfo.lengthInBytes>0 && bitrate>0)
-			playLength = (int)audioInfo.lengthInBytes/((bitrate/8)*1000);
-		
-		audioInfo.kbps = bitrate;
-		audioInfo.lengthInSeconds = playLength;
-    }  
-     
+	private boolean isVbr;
+	private byte[] byteBuf = new byte[4608];
+	private boolean firstHeader = true;
+	
 	public void decode() throws Exception
 	{
-		initMP3Player();
-		//System.out.println("mp3 1 " + System.currentTimeMillis());
-		boolean ret = true;
+		bitstream = new Bitstream(bin);      	        
+	    decoder = new Decoder();
+
+	    boolean ret = true;
 		
 		while (ret)
 		{
@@ -47,47 +24,54 @@ public class MP3Player extends BasePlayer
 	}
 
 	
-	/**
-	 * Decodes a single frame.
-	 * 
-	 * @return true if there are no more frames to decode, false otherwise.
-	 */
-	boolean init = false;
-	protected boolean decodeFrame() throws DecoderException, BitstreamException, LineUnavailableException
+	protected boolean decodeFrame() throws Exception
 	{		
-		if (!running) 
-			return false;
+   		Header h = bitstream.readFrame();
 
-		Header h = bitstream.readFrame();
+		if (firstHeader)
+			extractBitrateAndPlayLength(h);
 
-		if (h==null) return false;
-		int bitrateNow =  h.bitrate_instant();
+		if (h==null || !running) return false;
 		
-		if (vbr)
-			audioInfo.addVariableBitrate(bitrateNow);
-
-		//Log.write("mp3.3");
-		// sample buffer set when decoder constructed
-		SampleBuffer output = (SampleBuffer)decoder.decodeFrame(h, bitstream);
-		//Log.write("mp3.4");
-		
-		if (!init)
+		if (isVbr)
 		{
-			initAudioLine(decoder.getOutputChannels(), decoder.getOutputFrequency()
-					, 16, true, false);	
-			init = true;
+			int bitrateNow = h.bitrate_instant();
+			audioInfo.addVariableBitrate(bitrateNow);
 		}
+		
+		SampleBuffer output = (SampleBuffer)decoder.decodeFrame(h, bitstream);
+		
+		if (firstHeader)
+			initAudioLine(decoder.getOutputChannels(), decoder.getOutputFrequency(), 16, true, false);	
+		
+		firstHeader = false;
 		
 		int len = output.getBufferLength();
 		byte[] b = toByteArray(output.getBuffer(), 0, len);
 		write(b, len*2);	
 																		
 		bitstream.closeFrame();
-
-		return true;
+  		return true;
 	}
-	private byte[] byteBuf = new byte[4608];
 	
+    private void extractBitrateAndPlayLength(Header h) throws Exception
+    {
+    	isVbr = h.vbr();
+		int lengtInSeconds = (int)(h.total_ms((int)audioInfo.lengthInBytes)/1000);
+		int kbps = h.bitrate()/1000;
+
+		synchronized (audioInfo)
+		{
+			audioInfo.kbps = kbps;
+		}
+		
+		//Hmm no length in header. Calculate from filesize and CBR header.
+		if (lengtInSeconds==0 && audioInfo.lengthInBytes>0 && kbps>0)
+			lengtInSeconds = (int)audioInfo.lengthInBytes/((kbps/8)*1000);
+		
+		audioInfo.setLengthInSeconds(lengtInSeconds);
+    } 
+    
 	private byte[] getByteArray(int length)
 	{
 		if (byteBuf.length < length)

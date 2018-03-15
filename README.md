@@ -3,7 +3,7 @@ This is the playback and tag parsing code extracted from my very old JavaTunes p
 
 Decoders
 
-	Ogg Vorbis, FLAC, MP3, AAC, ALAC and WavPack
+	Ogg Vorbis, Opus, FLAC, MP3, AAC, ALAC and WavPack
 
 Tags supported
 
@@ -15,33 +15,36 @@ Features
 
 Usage
 
-	File file = new File("WavPack\\8bit.wv");
+	File file = new File("my file");
 	Track track = new TagReaderManager().read(file);
-	System.out.println(track.toString());
-	
+	write(track.toString());
+
 	AudioPlayer player = new AudioPlayer();
-	AudioInfo ai = player.play(track, false);
-	
-	while (player.isPlaying()) 
+	player.play(track, false);
+
+	while (player.isPlaying())
 	{
-		System.out.println(ai.toString());
+		write(player.getAudioInfo().toString());
 		Thread.sleep(1000);
 	}
 
 or without parsing tags, 1 line of code
 
-	new AudioPlayer().play("my file");
+	new AudioPlayer().play("http://some radio station");
 
-Pipe everything to FLAC file
+Record everything the AudioPlayer plays to a FLAC file
 
 	AudioPlayer player = new AudioPlayer();
 	player.enableFlacOutput(new File("output.flac"));
-	player.setOutputToMixer(false); //uncomment to disable sound in speakers 
-	player.play("ALAC\\08 Lilac.m4a");
-	
-	while (player.isPlaying()) 
-		Thread.sleep(1000);
-
+	player.setOutputToMixer(false);
+	player.play("my file");
+	player.waitUntilCurrentAudioHasEndeded();
 	player.finishFlacOutput();
 
-Note that seeking is not supported.
+	player.setOutputToMixer(true); 
+	player.play("output.flac");
+	while (player.isPlaying()) 
+	{
+		write(player.getAudioInfo().toString());
+		Thread.sleep(1000);
+	}

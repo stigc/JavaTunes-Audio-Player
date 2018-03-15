@@ -14,14 +14,11 @@ public class FLACPlayer extends BasePlayer implements PCMProcessor
 {
 	Exception ex;
 	
-    private void calculatePlayLength(StreamInfo si)
+    private int calculatePlayLength(StreamInfo si)
     {
     	int samplerate = si.getSampleRate();
     	long samples = si.getTotalSamples();
-    	synchronized(audioInfo)
-    	{
-    		audioInfo.lengthInSeconds = (int)(samples/samplerate);
-    	}
+    	return (int)(samples/samplerate);
     }
 	
     public void decode() throws Exception
@@ -29,14 +26,11 @@ public class FLACPlayer extends BasePlayer implements PCMProcessor
 		FLACDecoder decoder = new FLACDecoder(bin);
 		decoder.addPCMProcessor(this);
 		decoder.readMetadata();
-		calculatePlayLength(decoder.getStreamInfo());
-		trySetBitRateFromFileLength();
+		int lengthInSeconds = calculatePlayLength(decoder.getStreamInfo());
+		audioInfo.setLengthInSeconds(lengthInSeconds);
 		
-		while (true)
+		while (running)
 		{
-			if (!running) 
-				return;
-			
 			if (ex != null)
 				throw ex;
 			

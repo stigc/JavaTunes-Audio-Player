@@ -7,9 +7,8 @@ import dk.stigc.javatunes.audioplayer.tagreader.*;
 
 public class AudioPlayer
 {
-	IAudioPlayerHook hook;
+	private IAudioPlayerHook hook;
 	private volatile int volume;
-    public AudioInfo audioInfo;
     private BasePlayer player = new VoidPlayer();
     private SourceDataLineManager dlm = new SourceDataLineManager();
     
@@ -17,6 +16,15 @@ public class AudioPlayer
 	{
 		this.setVolume(100);		
 	}  
+	
+	/**
+	 * Thread Safe audio info access
+	 * @return
+	 */
+	public AudioInfo getAudioInfo()
+	{
+		return player.audioInfo.createClone();
+	}
 	
 	public IAudioPlayerHook addHook(IAudioPlayerHook hook)
 	{
@@ -73,30 +81,29 @@ public class AudioPlayer
     	return dlm.paused;
     }
     
-	public synchronized AudioInfo play(String path) throws Exception
+	public synchronized void play(String path) throws Exception
 	{
-		return play(new AudioImpl(path), false);
+		play(new AudioImpl(path), false);
 	}
 
-	public synchronized AudioInfo play(IAudio audio) throws Exception
+	public synchronized void play(IAudio audio) throws Exception
 	{
-		return play(audio, false);
+		play(audio, false);
 	}
 	
-	public synchronized AudioInfo play(IAudio audio, boolean isAlbumMode) throws Exception
+	public synchronized void play(IAudio audio, boolean isAlbumMode) throws Exception
 	{
     	if (player.ended == false)
     		stop();
     	
-    	audioInfo = new AudioInfo();
+    	AudioInfoInternal audioInfo = new AudioInfoInternal();
     	audioInfo.codec = audio.getCodec();
     	
     	InputSelector inputStreamSelector = new InputSelector();
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
 		audioInfo.lengthInBytes = inputStreamSelector.contentLength;
-		audioInfo.granules = inputStreamSelector.granules;
 
-    	extractMp4ContainerCodec(audio, inputStreamSelector);
+    	extractMp4ContainerCodec(audio, audioInfo, inputStreamSelector);
     	
     	switch (audioInfo.codec)
 		{
@@ -104,7 +111,8 @@ public class AudioPlayer
 				player = new FLACPlayer();
 				break;
 			case vorbis:
-				player = new OggPlayer();
+			case ogg:				
+				player = new OggPlayer(inputStreamSelector.granules);
 				break;
 			case wavpack:
 				player = new WavPackPlayer();
@@ -118,7 +126,10 @@ public class AudioPlayer
 				break;					
 			case alac:
 				player = new AlacPlayer();
-				break;							
+				break;		
+			case opus:
+				player = new OpusPlayer(inputStreamSelector.granules);
+				break;	
 			default:
 				player = new MP3Player();				
 		}
@@ -133,11 +144,10 @@ public class AudioPlayer
 		dlm.start();
 		
 		Log.write(player.getClass().getSimpleName() + " -> " + audio.getPath());
-
-		return audioInfo;
 	}
 
 	private void extractMp4ContainerCodec(IAudio audio,
+			AudioInfoInternal audioInfo,
 			InputSelector inputStreamSelector)
 			throws FileNotFoundException
 	{
@@ -156,6 +166,16 @@ public class AudioPlayer
     	return volume;
     }
 
+	public void waitUntilCurrentAudioHasEndeded() throws InterruptedException
+	{
+		synchronized(player)
+		{
+			if (player.ended)
+				return;
+			player.wait();
+		}
+	}
+	
 	public boolean flacOutputIsEnabled()
 	{
 		return dlm.flacOutputIsEnabled();
@@ -179,11 +199,5 @@ public class AudioPlayer
 	public void setOutputToMixer(boolean value)
 	{
 		dlm.setOutputToMixer(value);
-	}
-
-	public void waitForIdle()
-	{
-		// TODO Auto-generated method stub
-		
 	}
 }

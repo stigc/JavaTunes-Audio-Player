@@ -23,13 +23,11 @@ public class AacMp4Player extends BasePlayer
 		final List<Track> tracks = movie.getTracks(AudioTrack.AudioCodec.AAC);
 		if(tracks.isEmpty()) throw new Exception("movie does not contain any AAC track");
 		final AudioTrack track = (AudioTrack) tracks.get(0);
-
-
 		final SampleBuffer buf = new SampleBuffer();
 		buf.setBigEndian(false);
-		audioInfo.lengthInSeconds = (int)movie.getDuration();
-		trySetBitRateFromFileLength();
-
+		
+		audioInfo.setLengthInSeconds((int)movie.getDuration());
+		
 		final Decoder dec = new Decoder(track.getDecoderSpecificInfo());
 
 		while(track.hasMoreFrames()) 

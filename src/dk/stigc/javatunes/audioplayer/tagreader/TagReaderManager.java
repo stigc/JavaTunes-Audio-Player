@@ -32,9 +32,11 @@ public class TagReaderManager
 		{	
 			case mp3: return mp3TagReades;
 			case vorbis: return vorbisTagReades;
+			case opus: return vorbisTagReades;
 			case flac: return flacTagReades;
 			case wavpack: return wavpackTagReades;
 			case mp4container: return quickTimeTagReades;
+			case aac: return quickTimeTagReades;
 			default: return	noTagReades;
 		}
 	}

@@ -11,7 +11,7 @@ public class AlacPlayer extends BasePlayer
 		int sample_rate = AlacUtils.AlacGetSampleRate(ac);
         int num_channels = AlacUtils.AlacGetNumChannels(ac);
 		int bitps = AlacUtils.AlacGetBitsPerSample(ac);
-		audioInfo.lengthInSeconds = (total_samples / sample_rate);
+		audioInfo.setLengthInSeconds((total_samples / sample_rate));
 		initAudioLine(num_channels, sample_rate, bitps, true, false);	
 			    	
    		int destBufferSize = 1024 *24 * 3; // 24kb buffer = 4096 frames = 1 alac sample (we support max 24bps)

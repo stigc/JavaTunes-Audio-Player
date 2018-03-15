@@ -14,7 +14,7 @@ import javaFlacEncoder.StreamConfiguration;
 abstract public class BasePlayer extends Thread
 {	  	
 	public IPlayBackAPI playBackApi;	
-  	public AudioInfo audioInfo;	
+  	public AudioInfoInternal audioInfo;	
 	IAudioPlayerHook hook;
 	
   	protected BufferedInputStream bin;
@@ -29,7 +29,7 @@ abstract public class BasePlayer extends Thread
 	private double tagReplayGain = 1;
 	private volatile static double globalReplayGain = 1;
 		
-	public void initialize(InputStream in, IAudio audio, AudioInfo audioInfo
+	public void initialize(InputStream in, IAudio audio, AudioInfoInternal audioInfo
 			, double startGain, boolean isAlbumMode)
 	{
 		setPriority(MAX_PRIORITY);
@@ -55,21 +55,9 @@ abstract public class BasePlayer extends Thread
 	
 	private void calculatePosition() 
 	{
-		synchronized (audioInfo)
-		{
-			int bytesPerSecond = channels * rate * (bps/8);
-			double seconds = (double)totalBytes / bytesPerSecond;
-			audioInfo.positionInMs =  (long)(seconds * 1000);
-		}
-	}
-
-	public void trySetBitRateFromFileLength()
-	{
-		synchronized (audioInfo)
-		{
-			if (audioInfo.lengthInBytes>0 && audioInfo.lengthInSeconds > 0)
-				audioInfo.kbps = (int) (audioInfo.lengthInBytes / audioInfo.lengthInSeconds * 8/1000);
-		}
+		int bytesPerSecond = channels * rate * (bps/8);
+		double seconds = (double)totalBytes / bytesPerSecond;
+		audioInfo.positionInMs =  (long)(seconds * 1000);
 	}
 
   	private int applyGain(int v, double gain)
@@ -174,7 +162,12 @@ abstract public class BasePlayer extends Thread
 		}
 		finally 
 		{
-			ended = true;
+			synchronized(this)
+			{
+				ended = true;
+				this.notifyAll();
+			}
+			
 			Common.close(bin);
 		}
 		
@@ -210,7 +203,9 @@ abstract public class BasePlayer extends Thread
   		this.channels = channels;
   		this.bigEndian = bigEndian;
   		
-  		//dlm.initAudioLine(channels, rate, bps, signed, startGain);
+  		//Log.write("channels: " +channels);
+  		//Log.write("rate: " +rate);
+  		//Log.write("bps: " +bps);  		
   		playBackApi.initAudioLine(channels, rate, bps, signed, startGain);
 	}
 	

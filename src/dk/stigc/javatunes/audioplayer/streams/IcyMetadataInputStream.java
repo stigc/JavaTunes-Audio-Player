@@ -3,19 +3,19 @@ package dk.stigc.javatunes.audioplayer.streams;
 import java.io.*;
 
 import dk.stigc.javatunes.audioplayer.other.*;
-import dk.stigc.javatunes.audioplayer.player.AudioInfo;
+import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 
 //http://jicyshout.sourceforge.net/oreilly-article/java-streaming-mp3-pt2/java-streaming-mp3-pt2.html
 //http://sphere.sourceforge.net/flik/docs/streaming.html
 //http://www.smackfu.com/stuff/programming/shoutcast.html
 public class IcyMetadataInputStream extends InputStream
 {
-	private AudioInfo audioInfo;
+	private AudioInfoInternal audioInfo;
 	private int metaInt = -1;
 	private int bytesUntilNextMetadata = -1;
 	InputStream is;
 	
-	public IcyMetadataInputStream(InputStream is, AudioInfo audioInfo, int metaInt)
+	public IcyMetadataInputStream(InputStream is, AudioInfoInternal audioInfo, int metaInt)
 	{
 		this.is = is;
 		this.audioInfo = audioInfo;

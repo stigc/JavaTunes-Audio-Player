@@ -2,7 +2,7 @@ package dk.stigc.javatunes.audioplayer.streams;
 
 import java.io.*;
 import dk.stigc.javatunes.audioplayer.other.*;
-import dk.stigc.javatunes.audioplayer.player.AudioInfo;
+import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 import dk.stigc.javatunes.audioplayer.tagreader.*;
 
 //http://jicyshout.sourceforge.net/oreilly-article/java-streaming-mp3-pt2/java-streaming-mp3-pt2.html
@@ -10,7 +10,7 @@ import dk.stigc.javatunes.audioplayer.tagreader.*;
 //http://www.smackfu.com/stuff/programming/shoutcast.html
 public class InputStreamWithTagReader extends BufferedInputStream
 {
-	private AudioInfo audioInfo;
+	private AudioInfoInternal audioInfo;
 	private int buffersize = 1024*8; //8kb;
 	private byte[] data = new byte[buffersize];
 	private int metaInt = -1;
@@ -30,7 +30,7 @@ public class InputStreamWithTagReader extends BufferedInputStream
 		}
 	}
 	
-	public InputStreamWithTagReader(InputStream in, AudioInfo audioInfo)
+	public InputStreamWithTagReader(InputStream in, AudioInfoInternal audioInfo)
 	{
 		super(in);
 		this.audioInfo = audioInfo;
