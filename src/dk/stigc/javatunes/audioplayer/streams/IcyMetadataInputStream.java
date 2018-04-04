@@ -2,6 +2,7 @@ package dk.stigc.javatunes.audioplayer.streams;
 
 import java.io.*;
 
+import dk.stigc.common.StringFunc;
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 

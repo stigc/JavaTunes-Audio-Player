@@ -3,6 +3,7 @@ package dk.stigc.javatunes.audioplayer.player;
 import java.io.*;
 import java.nio.charset.Charset;
 
+import dk.stigc.common.StringFunc;
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.streams.*;
 

@@ -44,8 +44,14 @@ public class InputStreamHelper
         InputStream is = getRemoteInputStreamImpl(conn);
 
         //Set AudioInfo
-		audioInfo.icyName = icyName;
-		audioInfo.icyGenre = icyGenre;
+
+		if (icyMetaInt>0)
+		{
+			audioInfo.icyMetaInt = icyMetaInt;
+			audioInfo.icyName = icyName;
+			audioInfo.icyGenre = icyGenre;
+		}
+			
         setCodecFromContentType(audioInfo);
         
         return is;

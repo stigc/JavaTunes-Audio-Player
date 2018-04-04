@@ -65,10 +65,10 @@ public class Track extends AbstractTrack implements IAudio
 		{
 			builder.append(", embededCover");
 		}
-		if (isKaraoke)
-		{
-			builder.append(", karaoke");
-		}
+//		if (isKaraoke)
+//		{
+//			builder.append(", karaoke");
+//		}
 		if (replaygain != REPLAY_GAIN_NOT_SET)
 		{
 			builder.append(", replaygain=");

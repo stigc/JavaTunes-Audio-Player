@@ -23,6 +23,9 @@ public class AudioPlayer
 	 */
 	public AudioInfo getAudioInfo()
 	{
+		if (player.audioInfo == null)
+			return null;
+		
 		return player.audioInfo.createClone();
 	}
 	
@@ -96,7 +99,7 @@ public class AudioPlayer
     	if (player.ended == false)
     		stop();
     	
-    	AudioInfoInternal audioInfo = new AudioInfoInternal();
+    	AudioInfoInternal audioInfo = new AudioInfoInternal(audio.hashCode());
     	audioInfo.codec = audio.getCodec();
     	
     	InputSelector inputStreamSelector = new InputSelector();
@@ -134,6 +137,8 @@ public class AudioPlayer
 				player = new MP3Player();				
 		}
    
+    	//player = new FileWriterPlayer();				
+    	//player = new AacAdtsPlayer();
     	double gain = volume/100.0;
 		
 		player.hook = hook;
@@ -166,7 +171,7 @@ public class AudioPlayer
     	return volume;
     }
 
-	public void waitUntilCurrentAudioHasEndeded() throws InterruptedException
+	public void waitUntilCurrentAudioHasEnded() throws InterruptedException
 	{
 		synchronized(player)
 		{

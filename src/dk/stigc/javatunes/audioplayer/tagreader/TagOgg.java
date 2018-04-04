@@ -1,5 +1,6 @@
 package dk.stigc.javatunes.audioplayer.tagreader;
 
+import dk.stigc.common.StringFunc;
 import dk.stigc.javatunes.audioplayer.other.*;
 
 import java.io.*; 

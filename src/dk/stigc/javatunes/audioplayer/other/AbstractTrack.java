@@ -8,7 +8,7 @@ public abstract class AbstractTrack
 	public StringList genres = new StringList();
 
 	public Codec codec = Codec.unknown;
-	public boolean embededCover, isKaraoke;
+	public boolean embededCover;
 	public static double REPLAY_GAIN_NOT_SET = Double.MIN_VALUE;
 	public double replaygain = REPLAY_GAIN_NOT_SET;
 	public double replaygainAlbumMode = REPLAY_GAIN_NOT_SET;

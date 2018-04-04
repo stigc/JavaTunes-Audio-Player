@@ -118,12 +118,7 @@ public class Tests
 		playFor5Seconds(root + "WavPack\\Track01.wv");
 	}
 	
-	@Test
-	public void aacWillPlay() throws Exception
-	{
-		playFor5Seconds(root + "AAC\\03 Down The Nightclub.m4a");
-	}
-	
+
 	@Test
 	public void aacAdtsWillPlay() throws Exception
 	{
@@ -146,15 +141,34 @@ public class Tests
 	}
 
 	@Test
-	public void aacWithSbrWillWork() throws Exception
+	public void aac2() throws Exception
 	{
-		playFor5Seconds("http://51.254.29.40:80/stream3");
+		playFor5Seconds(root + "AAC\\SBR 02 Loca (feat. Dizzee Rascal).m4a");
+	}
+	
+	
+	@Test
+	public void aacWithLcWillPlay() throws Exception
+	{
+		playFor5Seconds(root + "AAC\\03 Down The Nightclub.m4a");
+	}
+	
+
+	@Test
+	public void aacWithSbrWillWork1() throws Exception
+	{
+		playFor5Seconds(root + "AAC\\SBR 06 One In A Million.m4a");
 	}
 
 	@Test
+	public void aacWithSbrWillWork2() throws Exception
+	{
+		playFor5Seconds("http://51.254.29.40:80/stream3");
+	}
+	
+	@Test
 	public void opusShoutcastWillWork() throws Exception
 	{
-		playFor5Seconds("http://dir.xiph.org/listen/1400924/listen.m3u");
 		playFor5Seconds("http://dir.xiph.org/listen/1086535/listen.m3u");
 	}
 	
@@ -218,8 +232,7 @@ public class Tests
 	    return s.hasNext() ? s.next() : "";
 	}
 	
-	@Test
-	public void test() throws Exception
+	public void testingYoutube() throws Exception
 	{
 		String[] cmds = new String[]{
 				"C:\\Users\\Stig\\Desktop\\youtube-dl.exe"
@@ -320,7 +333,7 @@ public class Tests
 		player.enableFlacOutput(new File("output.flac"));
 		player.play(root + "ALAC\\08 Lilac.m4a");
 		player.setOutputToMixer(false);
-		player.waitUntilCurrentAudioHasEndeded();
+		player.waitUntilCurrentAudioHasEnded();
 		player.finishFlacOutput();
 
 		player.setOutputToMixer(true); 

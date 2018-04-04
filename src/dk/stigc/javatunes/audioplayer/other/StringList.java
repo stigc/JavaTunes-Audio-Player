@@ -1,6 +1,8 @@
 package dk.stigc.javatunes.audioplayer.other;
 
-import java.util.*; 
+import java.util.*;
+
+import dk.stigc.common.StringFunc; 
 
 public class StringList extends ArrayList<String>
 {
@@ -14,6 +16,10 @@ public class StringList extends ArrayList<String>
 	public StringList(String s) 
   	{
 		super(1);
+
+		if (s == null || s.length()==0)
+			throw new RuntimeException("Cannot add null or empty string");
+		
 		this.add(s);
   	}
 	
@@ -23,9 +29,12 @@ public class StringList extends ArrayList<String>
   			this.add(s);
   	}
 
-	public boolean add(String v)
+	public boolean add(String s)
   	{
-  		return super.add(v);
+		if (s == null || s.length()==0)
+			throw new RuntimeException("Cannot add null or empty string");
+		
+  		return super.add(s);
   	}
 
 	@Override
@@ -34,6 +43,13 @@ public class StringList extends ArrayList<String>
   		return toString("/");
   	}
   	
+	public String first()
+  	{
+  		if (this.size()==0)
+  			return "";
+		return this.get(0);  			
+  	}
+	
   	public String toString(String seperator)
   	{
   		if (this.size()==0)
@@ -63,7 +79,7 @@ public class StringList extends ArrayList<String>
 		return true;
 	}	
 
-	public boolean containsIgnoreCase(String text)
+	public boolean hasElmentIgnoreCase(String text)
   	{
   		for (String s: this)
   		{
@@ -73,11 +89,11 @@ public class StringList extends ArrayList<String>
   		return false;
   	}
 	
-	public boolean searchWithLowerCase(String text)
+	public boolean containsIgnoreCase(String text)
   	{
   		for (String s: this)
   		{
-  			if (s.toLowerCase().indexOf(text)!=-1)
+  			if (StringFunc.indexOfIgnoreCase(s, text) != -1)
   				return true;
   		}	
   		return false;
@@ -86,5 +102,40 @@ public class StringList extends ArrayList<String>
 	public int compareToIgnoreCase(StringList that)
 	{
 		return this.toString().compareToIgnoreCase(that.toString());
+	}
+	
+	public int compareToIgnoreCase(String value)
+	{
+		return this.toString().compareToIgnoreCase(value);
+	}
+
+	public boolean startsWithIgnoreCase(char ch)
+	{
+		if (size()==0)
+			return false;
+		return Character.toLowerCase(this.get(0).charAt(0))
+				== Character.toLowerCase(ch);
+	}
+
+	public void mergeWith(StringList list)
+	{
+		for (String s : list)
+			if (!contains(s))
+				add(s);
+	}
+
+	public void changeTo(String value)
+	{
+		if (size() == 1)
+		{
+			if (!get(0).equals(value))
+				set(0, value);
+		}
+		else
+		{
+			if (size()>0)
+				this.clear();
+			add(value);
+		}
 	}
 }

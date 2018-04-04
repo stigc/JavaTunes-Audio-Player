@@ -1,5 +1,6 @@
 package dk.stigc.javatunes.audioplayer.other;
 
+import dk.stigc.common.StringFunc;
 
 public enum Codec
 {
@@ -14,7 +15,7 @@ public enum Codec
 	opus("Opus"),
 	//containers
 	mp4container("MP4"), //transforms -> aac, alac
-	ogg("Ogg") //transforms -> aac, alac
+	ogg("Ogg") //transforms -> vorbis, opus
 	;
 	
     public String name;

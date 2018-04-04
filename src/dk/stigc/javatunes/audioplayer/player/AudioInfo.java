@@ -4,11 +4,13 @@ import dk.stigc.javatunes.audioplayer.other.Codec;
 
 public class AudioInfo
 {
+	public int sourceHashCode;
 	public int channels, sampleRate, bitsPerSample;
 	public int kbps, kbpsVar;
 	public int lengthInSeconds;
 	public long positionInMs;
 	public long lengthInBytes;
+	public int icyMetaInt;
 	public String icyName, icyGenre, icyStreamTitle;
 	public Codec codec;
 	

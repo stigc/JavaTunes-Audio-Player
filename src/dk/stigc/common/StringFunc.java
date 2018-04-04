@@ -1,4 +1,4 @@
-package dk.stigc.javatunes.audioplayer.other;
+package dk.stigc.common;
 
 public class StringFunc 
 {
@@ -67,4 +67,36 @@ public class StringFunc
         
         return buf.toString();
     }
+	
+	public static int indexOfIgnoreCase(String text, String search)
+	{
+		if (search.length()==0)
+			return 0;
+		
+		if (text.length()==0)
+			return -1;
+
+		for (int i=0; i<text.length(); i++)
+		{
+			if (i + search.length() > text.length())
+				return -1;
+			
+			boolean match = true;
+			
+			for (int j=0; j<search.length(); j++)
+			{
+				if (Character.toLowerCase(text.charAt(i+j)) 
+						!= Character.toLowerCase(search.charAt(j)))
+				{
+					match = false;
+					break;
+				}
+			}
+			
+			if (match)
+				return i;
+		}
+
+		return -1;
+	}
 }

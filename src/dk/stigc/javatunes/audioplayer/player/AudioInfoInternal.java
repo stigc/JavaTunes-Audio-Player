@@ -4,14 +4,21 @@ import dk.stigc.javatunes.audioplayer.other.*;
 
 public class AudioInfoInternal
 {
+	private int sourceHashCode;
 	private int channels, sampleRate, bitsPerSample;
 	public int kbps;
 	public int lengthInSeconds;
 	public volatile long positionInMs;
 	public long lengthInBytes;
+	public int icyMetaInt;
 	public String icyName, icyGenre, icyStreamTitle;
 	public Codec codec;
 	
+	public AudioInfoInternal(int sourceHashCode)
+	{
+		this.sourceHashCode = sourceHashCode;
+	}
+
 	public synchronized void init(int channels, int sampleRate, int bitsPerSample)
 	{
 		this.channels = channels;
@@ -63,10 +70,12 @@ public class AudioInfoInternal
 		ai.lengthInSeconds = this.lengthInSeconds;
 		ai.positionInMs = this.positionInMs;
 		ai.lengthInBytes = this.lengthInBytes;
+		ai.icyMetaInt = this.icyMetaInt;
 		ai.icyName = this.icyName;
 		ai.icyGenre = this.icyGenre;
 		ai.icyStreamTitle = this.icyStreamTitle;
 		ai.codec = this.codec;
+		ai.sourceHashCode = this.sourceHashCode;
 		return ai;
 	}
 }
