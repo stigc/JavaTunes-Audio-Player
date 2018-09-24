@@ -11,7 +11,7 @@ Tags supported
 
 Features
 
-	SHOUTcast, Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres, FLAC encoder
+	SHOUTcast, HLS (AAC ADTS only), Replay Gain, Gapless playback, lyrics, cover art, multiple artists and genres, FLAC encoder
 
 Usage
 
