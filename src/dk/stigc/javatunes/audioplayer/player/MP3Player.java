@@ -28,9 +28,13 @@ public class MP3Player extends BasePlayer
 	{		
    		Header h = bitstream.readFrame();
 
-		if (firstHeader)
+		if (firstHeader) 
+		{
+			if (h==null)
+				throw new Exception("Missing mp3 header");
 			extractBitrateAndPlayLength(h);
-
+		}
+		
 		if (h==null || !running) return false;
 		
 		if (isVbr)

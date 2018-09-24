@@ -590,8 +590,10 @@ public class FLACDecoder {
         int length = bitStream.readRawUInt(Metadata.STREAM_METADATA_LENGTH_LEN);
         
         if (type == Metadata.METADATA_TYPE_STREAMINFO) {
-            streamInfo = new StreamInfo(bitStream, length, isLast);
-            metadata = streamInfo;
+        	StreamInfo currentStreamInfo = new StreamInfo(bitStream, length, isLast);
+        	if (streamInfo == null)
+        		streamInfo = currentStreamInfo;
+            metadata = currentStreamInfo;
             pcmProcessors.processStreamInfo((StreamInfo)metadata);
         } else if (type == Metadata.METADATA_TYPE_SEEKTABLE) {
             metadata = new SeekTable(bitStream, length, isLast);

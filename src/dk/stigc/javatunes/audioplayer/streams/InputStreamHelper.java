@@ -10,11 +10,12 @@ import dk.stigc.javatunes.audioplayer.player.IAudio;
 
 public class InputStreamHelper
 {
+	public boolean loggerHeadres;
 	public int contentLength;
 	public int icyMetaInt;
 	private String contentType, icyName, icyGenre;
-	
-	private URLConnection createConnection(String location) throws Exception
+	private String cookie;
+	private URLConnection createConnection(String location) throws IOException
 	{
 		location = location.replace('\\','/');
 		location = location.replaceAll(" ","%20");
@@ -27,20 +28,26 @@ public class InputStreamHelper
 	    return urlc;	
 	}
 	
-	public InputStream getHttp(String location, String range) throws Exception
+	public InputStream getHttp(String location, String range) throws IOException
 	{
 		URLConnection conn = createConnection(location);
 		conn.setRequestProperty("User-Agent", "JavaTunesPlayer"); 
-		conn.setRequestProperty("Range", range);
+		if (range != null)
+			conn.setRequestProperty("Range", range);
 		return getRemoteInputStreamImpl(conn);
 	}
 	
-	public InputStream getHttpWithIcyMetadata(String url, AudioInfoInternal audioInfo) throws Exception
+	
+	public InputStream getHttpWithIcyMetadata(String url, AudioInfoInternal audioInfo, String cookie) throws Exception
 	{
 		URLConnection conn = createConnection(url);
         //String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
         conn.setRequestProperty("User-Agent", "JavaTunesPlayer"); 
-        conn.setRequestProperty("Icy-MetaData", "1");
+        //conn.setRequestProperty("Icy-MetaData", "1");
+        if (cookie != null)
+        	conn.setRequestProperty("Set-Cookie", cookie);
+        else 
+        	conn.setRequestProperty("Icy-MetaData", "1");
         InputStream is = getRemoteInputStreamImpl(conn);
 
         //Set AudioInfo
@@ -77,11 +84,16 @@ public class InputStreamHelper
         		audioInfo.codec = Codec.flac;
         	else if (contentType.equals("audio/mp3"))
         		audioInfo.codec = Codec.mp3;
+        	else if (contentType.equals("audio/mp3"))
+        		audioInfo.codec = Codec.mp3;
+        	else if (contentType.contains("vnd.apple.mpegurl"))
+        		audioInfo.codec = Codec.hlc;            	
         }
 	}
 	
-	private InputStream getRemoteInputStreamImpl(URLConnection url) throws Exception
+	private InputStream getRemoteInputStreamImpl(URLConnection url) throws IOException
 	{
+		
 		HttpURLConnection httpConnection = (HttpURLConnection)url;
 		httpConnection.setInstanceFollowRedirects(true);
 		int maxTries = 3;
@@ -92,6 +104,7 @@ public class InputStreamHelper
     		{
     			maxTries--;
     			
+
     			httpConnection.connect();
     			
 				int httpStatus = httpConnection.getResponseCode();
@@ -105,15 +118,29 @@ public class InputStreamHelper
 				icyMetaInt = httpConnection.getHeaderFieldInt("icy-metaint", 0);
 				icyName = httpConnection.getHeaderField("icy-name");
 				icyGenre = httpConnection.getHeaderField("icy-genre");
+				cookie = httpConnection.getHeaderField("Set-Cookie");
 				contentLength = httpConnection.getContentLength();
 				contentType = httpConnection.getContentType();
+				
+				if (loggerHeadres)
+				{
+					for (Map.Entry<String, List<String>> entry : httpConnection.getHeaderFields().entrySet())
+					{
+						String str = "";
+			            for (String value : entry.getValue()) {
+			            	str += (value + ", ");
+			            }
+			            
+			            Log.write("Header " + entry.getKey() + ": " + str);
+			        }
+				}
 				return httpConnection.getInputStream();
     		}
     		catch(FileNotFoundException ex1)
     		{
     			throw ex1;
     		}
-    		catch(Exception ex2)
+    		catch(IOException ex2)
     		{
     			if (maxTries > 0)
     			{
@@ -153,6 +180,31 @@ public class InputStreamHelper
 		return index;
         //if (index<size)
         //	Log.write("[ERROR reading full buffer : " + index + "]"); 
-	}		
+	}
+	
+	public static byte[] readBytes(InputStream in)
+	{
+		byte[] data = null;
+		
+		try
+		{ 
+			ByteArrayOutputStream out = new ByteArrayOutputStream(32000);
+			byte[] buf = new byte[8000];
+			int n=0;		
+			while ((n = in.read(buf)) > 0)
+				out.write(buf, 0, n);
+			data = out.toByteArray();
+		}
+		catch(Exception ex)
+        {
+        	Log.write("readBytes(2)", ex);
+        }
+        finally
+        {
+        	Common.close(in);
+        }	
+        
+        return data;	
+	}
 }
 

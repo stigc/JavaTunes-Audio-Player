@@ -3,6 +3,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -16,6 +17,7 @@ import javax.sound.sampled.Line;
 import javax.sound.sampled.Mixer;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -23,11 +25,14 @@ import org.junit.rules.ExpectedException;
 import dk.stigc.javatunes.audioplayer.other.Codec;
 import dk.stigc.javatunes.audioplayer.other.Common;
 import dk.stigc.javatunes.audioplayer.other.Track;
-import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
+import dk.stigc.javatunes.audioplayer.player.AudioInfo;
 import dk.stigc.javatunes.audioplayer.player.AudioPlayer;
 import dk.stigc.javatunes.audioplayer.player.BasePlayer;
 import dk.stigc.javatunes.audioplayer.player.IAudio;
 import dk.stigc.javatunes.audioplayer.player.IAudioPlayerHook;
+import dk.stigc.javatunes.audioplayer.streams.HlsInputStream;
+import dk.stigc.javatunes.audioplayer.streams.HlsReader;
+import dk.stigc.javatunes.audioplayer.streams.InputStreamHelper;
 import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
 public class Tests
@@ -56,7 +61,7 @@ public class Tests
 	}
 
 	@Test
-	public void decoderShouldReportError() throws Exception
+	public void whenDecodingErrorEventIsFired() throws Exception
 	{
 		Track track = new Track();
 		track.path = "lincense.txt";
@@ -75,7 +80,6 @@ public class Tests
 			public void audioFailed(IAudio audio, Exception ex)
 			{
 				list.add(ex.getMessage());	
-				
 			}
 			@Override
 			public void audioEnded(IAudio audio)
@@ -83,15 +87,60 @@ public class Tests
 				list.add("audioEnded");
 				
 			}
+			@Override
+			public void audioStarting(AudioInfo audio)
+			{
+				list.add("audioStarting");
+			}
 		});
 		
 		audioPlayer.play(track);
-		
-		while(list.size()==0)
-			Thread.sleep(100);
+		audioPlayer.waitUntilCurrentAudioHasEnded();
+		Common.sleep(500); //audioFailed is raised after ended...
 		
 		assertEquals(1, list.size());
 		assertTrue(list.contains("Missing mp3 header"));
+	}
+	
+	@Test
+	public void whenPlayingEventsIsFired() throws Exception
+	{
+		Track track = new Track();
+		track.path = root + "WavPack\\Track01.wv";
+		
+		final List<String> list = Collections.synchronizedList(new ArrayList<String>());
+
+		final AudioPlayer audioPlayer = new AudioPlayer();
+		audioPlayer.addHook(new IAudioPlayerHook() {
+			@Override
+			public void audioInterrupted(IAudio audio)
+			{
+				list.add("audioInterrupted");
+			}
+			@Override
+			public void audioFailed(IAudio audio, Exception ex)
+			{
+				list.add(ex.getMessage());	
+			}
+			@Override
+			public void audioEnded(IAudio audio)
+			{
+				list.add("audioEnded");
+			}
+			@Override
+			public void audioStarting(AudioInfo audio)
+			{
+				list.add("audioStarting");
+			}
+		});
+		
+		audioPlayer.play(track);
+		audioPlayer.waitUntilCurrentAudioHasEnded();
+		Common.sleep(500); //audioEnded is raised after ended...
+		
+		assertEquals(2, list.size());
+		assertEquals("audioStarting", list.get(0));
+		assertEquals("audioEnded", list.get(1));
 	}
 	
 	@Test
@@ -118,7 +167,6 @@ public class Tests
 		playFor5Seconds(root + "WavPack\\Track01.wv");
 	}
 	
-
 	@Test
 	public void aacAdtsWillPlay() throws Exception
 	{
@@ -146,14 +194,12 @@ public class Tests
 		playFor5Seconds(root + "AAC\\SBR 02 Loca (feat. Dizzee Rascal).m4a");
 	}
 	
-	
 	@Test
 	public void aacWithLcWillPlay() throws Exception
 	{
 		playFor5Seconds(root + "AAC\\03 Down The Nightclub.m4a");
 	}
 	
-
 	@Test
 	public void aacWithSbrWillWork1() throws Exception
 	{
@@ -169,13 +215,12 @@ public class Tests
 	@Test
 	public void opusShoutcastWillWork() throws Exception
 	{
-		playFor5Seconds("http://dir.xiph.org/listen/1086535/listen.m3u");
+		playFor5Seconds("http://dir.xiph.org/listen/2749113/listen.m3u");
 	}
 	
 	@Test
 	public void opusWillWork() throws Exception
 	{
-	//	playFor5Seconds(root + "opus\\2-8000hz.opus");
 		playFor5Seconds(root + "opus\\11025.opus");
 		playFor5Seconds(root + "opus\\11025-mono.opus");
 		playFor5Seconds(root + "opus\\22500.opus");
@@ -201,15 +246,23 @@ public class Tests
 	}
 	
 	@Test
+	public void playFlacFileWithMultipleAndEmptyStreamInfos() throws Exception
+	{
+		playFor5Seconds(root + "flac\\tidal1.flac");
+	}
+
+	@Test		
+    public void playHlsStream() throws Exception
+	{
+		playForXSeconds(30, "http://drradio1-lh.akamaihd.net/i/p1_9@143503/index_256_a-p.m3u8?sd=10&rebase=on");
+	}
+	
+	@Test
 	public void shoutCastWillWork() throws Exception
 	{
 		TestPlayer player = new TestPlayer();
-		player.tracks.add("http://178.33.104.250:80/stream");
-		player.tracks.add("http://streaming.radio24syv.dk/pls/24syv_96_IR.pls");
 		player.tracks.add("http://live-icy.gss.dr.dk:8000/A/A03L.mp3.m3u");
 		player.tracks.add("http://51.254.29.40:80/stream3");
-		player.tracks.add("http://178.33.45.203:80/stream2");
-		
 		player.start();
 		
 		int seconds = 0;
@@ -256,13 +309,6 @@ public class Tests
 				write(" * " + player.getAudioInfo().toString());
 			}
 		}
-//		AudioPlayer player = new AudioPlayer();
-//		player.play("http://streaming.radio24syv.dk/pls/24syv_96_IR.pls");
-//		while (player.isPlaying())
-//		{
-//			Common.sleep(1000);	
-//			write(" * " + player.getAudioInfo().toString());
-//		}
 	}
 	
 	@Test
@@ -310,6 +356,7 @@ public class Tests
 	}
 	
 	@Test
+	@Ignore
 	public void gitHubDemoTest() throws Exception
 	{
 		File file = new File(root + "WavPack\\8bit.wv");
@@ -327,6 +374,7 @@ public class Tests
 	}
 	
 	@Test
+	@Ignore
 	public void gitHubDemoTest2() throws Exception
 	{
 		AudioPlayer player = new AudioPlayer();
@@ -369,21 +417,6 @@ public class Tests
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
 
-	
-	@Test
-	public void audioInfoWillWork() throws Exception
-	{
-		AudioPlayer audioPlayer = new AudioPlayer();
-		audioPlayer.play(root + "AAC\\03 Down The Nightclub.m4a");
-
-		while(audioPlayer.isPlaying())
-		{
-			write(audioPlayer.getAudioInfo().toString());
-			Thread.sleep(50);
-		}
-	}
-	
-	
 	@Test
 	public void displayMixerInfo()
 	{
@@ -405,8 +438,7 @@ public class Tests
 	   }
 	}
 
-
-	private static void showLineInfo(final Line.Info lineInfo)
+	private void showLineInfo(final Line.Info lineInfo)
 	{
 		write("  " + lineInfo.toString());
 
@@ -420,12 +452,16 @@ public class Tests
 	   }
 	}
 	
+	private void playForXSeconds(int seconds, String path) throws Exception
+	{
+		playForXSeconds(path, null, seconds);
+	}
 	private void playFor5Seconds(String path) throws Exception
 	{
-		playFor5Seconds(path, null);
+		playForXSeconds(path, null, 5);
 	}
 	
-	private void playFor5Seconds(String path, Track track) throws Exception
+	private void playForXSeconds(String path, Track track, int seconds) throws Exception
 	{
 		AudioPlayer audioPlayer = new AudioPlayer();
 		
@@ -436,7 +472,7 @@ public class Tests
 				
 		long startTime = System.currentTimeMillis();
 		
-		while (System.currentTimeMillis() - startTime < 5000)
+		while (System.currentTimeMillis() - startTime < seconds * 1000)
 		{
 			Common.sleep(1000);	
 			write(" * " + audioPlayer.getAudioInfo().toString());
@@ -445,7 +481,7 @@ public class Tests
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
 
-	private static void write(String msg)
+	private void write(String msg)
 	{
 		System.out.println("      " + msg);
 	}

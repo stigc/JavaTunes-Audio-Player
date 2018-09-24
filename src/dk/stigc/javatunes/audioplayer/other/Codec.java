@@ -15,7 +15,8 @@ public enum Codec
 	opus("Opus"),
 	//containers
 	mp4container("MP4"), //transforms -> aac, alac
-	ogg("Ogg") //transforms -> vorbis, opus
+	ogg("Ogg"), //transforms -> vorbis, opus
+	hlc("HLC") 
 	;
 	
     public String name;

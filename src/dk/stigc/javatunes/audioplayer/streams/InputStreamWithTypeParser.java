@@ -35,6 +35,7 @@ public class InputStreamWithTypeParser extends InputStream
 	
 	public InputStreamWithTypeParser(InputStream in, AudioInfoInternal audioInfo)
 	{
+		//application/vnd.apple.mpegurl
 		this.in = in;
 		
 		buffer = new byte[1024*10];
@@ -57,6 +58,7 @@ public class InputStreamWithTypeParser extends InputStream
 				)
 		{
 			Log.write("Parsed playlist from stream");
+			//Log.write("String is " + new String(buffer));
 			isPlayList = true;
 		}
 	}

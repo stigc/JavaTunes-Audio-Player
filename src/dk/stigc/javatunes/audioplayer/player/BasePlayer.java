@@ -186,7 +186,6 @@ abstract public class BasePlayer extends Thread
 		else
 		{
 			Log.write("audioInterrupted");
-
 			if (hook != null)				
 				hook.audioInterrupted(audio);
 		}
@@ -207,6 +206,9 @@ abstract public class BasePlayer extends Thread
   		//Log.write("rate: " +rate);
   		//Log.write("bps: " +bps);  		
   		playBackApi.initAudioLine(channels, rate, bps, signed, startGain);
+  		
+  		if (hook != null)
+  			hook.audioStarting(audioInfo.createClone());
 	}
 	
 }

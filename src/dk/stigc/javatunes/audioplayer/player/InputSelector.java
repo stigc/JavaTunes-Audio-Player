@@ -35,10 +35,10 @@ public class InputSelector
 			return new FileInputStream(file);
 		}
 		
-		return getHttpInputStream(audio.getPath(), audio, audioInfo);
+		return getHttpInputStream(audio.getPath(), audio, audioInfo, null);
 	}
 
-	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfoInternal audioInfo) throws Exception, UnsupportedEncodingException, IOException
+	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfoInternal audioInfo, String cookie) throws Exception, UnsupportedEncodingException, IOException
 	{
 		if (audio.getCodec() == Codec.vorbis
 				|| audio.getCodec() == Codec.opus
@@ -46,20 +46,28 @@ public class InputSelector
 			findOggGranulesOnRemoteFile(audio);
 		
 		InputStreamHelper ish = new InputStreamHelper();
-		InputStream is = ish.getHttpWithIcyMetadata(url, audioInfo);
+		InputStream is = ish.getHttpWithIcyMetadata(url, audioInfo, cookie);
 		contentLength = ish.contentLength;
 		
-    	if (audioInfo.codec == Codec.unknown || audioInfo.codec == Codec.ogg)
+		if (audioInfo.codec == Codec.hlc)
+		{
+			contentLength = 0;
+			HlsInputStream hlsStream = new HlsInputStream();
+			HlsReader reader = new HlsReader(url, is, hlsStream);
+			reader.start();
+			return hlsStream;
+		}
+		else if (audioInfo.codec == Codec.unknown || audioInfo.codec == Codec.ogg)
     	{
     		InputStreamWithTypeParser parser = new InputStreamWithTypeParser(is, audioInfo);
     		
     		if (parser.isPlayList)
     		{
-    			Common.close(parser);
     			String url2 = parsePlayListFindFirstPath(parser);
+    			Common.close(parser);
     			if (url2 == null)
     				throw new Exception("Cannot read .m3u or .pls");
-    			return getHttpInputStream(url2, audio, audioInfo);
+    			return getHttpInputStream(url2, audio, audioInfo, cookie);
     		}
     		
     		is = parser;

@@ -2,6 +2,7 @@ package dk.stigc.javatunes.audioplayer.tests;
 
 import java.util.ArrayDeque;
 
+import dk.stigc.javatunes.audioplayer.player.AudioInfo;
 import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 import dk.stigc.javatunes.audioplayer.player.AudioPlayer;
 import dk.stigc.javatunes.audioplayer.player.IAudio;
@@ -68,5 +69,12 @@ public class TestPlayer implements IAudioPlayerHook
 	public void stop()
 	{
 		audioPlayer.stop();
+	}
+
+	@Override
+	public void audioStarting(AudioInfo audio)
+	{
+		// TODO Auto-generated method stub
+		
 	}
 }

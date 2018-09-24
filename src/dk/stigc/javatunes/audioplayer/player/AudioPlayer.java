@@ -11,7 +11,6 @@ public class AudioPlayer
 	private volatile int volume;
     private BasePlayer player = new VoidPlayer();
     private SourceDataLineManager dlm = new SourceDataLineManager();
-    
 	public AudioPlayer()
 	{
 		this.setVolume(100);		
@@ -132,13 +131,14 @@ public class AudioPlayer
 				break;		
 			case opus:
 				player = new OpusPlayer(inputStreamSelector.granules);
-				break;	
+				break;
+			case hlc:
+				player = new AacAdtsTsPlayer();
+				break;
 			default:
 				player = new MP3Player();				
 		}
-   
-    	//player = new FileWriterPlayer();				
-    	//player = new AacAdtsPlayer();
+	
     	double gain = volume/100.0;
 		
 		player.hook = hook;

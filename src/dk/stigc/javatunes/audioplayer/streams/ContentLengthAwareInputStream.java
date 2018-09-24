@@ -24,7 +24,7 @@ public class ContentLengthAwareInputStream extends InputStream
 
 		if (read > contentLength && contentLength > 0)
 		{
-			Log.write("ContentLengthAwareInputStream End");
+			//Log.write("ContentLengthAwareInputStream End > " +contentLength);
 			return -1;
 		}
 		
