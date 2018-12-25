@@ -93,7 +93,6 @@ public class HlsSegmentsReader extends Thread
 		}
 	}
 	
-	static int counter;
 	public void readBytesInUrlAndAddToHlsStream(String url) throws IOException, InterruptedException
 	{
 		InputStreamHelper ish = new InputStreamHelper();
@@ -103,11 +102,6 @@ public class HlsSegmentsReader extends Thread
 			is = new ContentLengthAwareInputStream(is, ish.contentLength);
 		
 		byte[] bytes = InputStreamHelper.readBytes(is);
-		//Log.write(bytes.length + "/" + bytes[188]);
-		counter++;
-		FileOutputStream fos = new FileOutputStream(counter + ".ts");
-		fos.write(bytes);
-		fos.close();
 		
 		if (bytes.length>0)
 		{
