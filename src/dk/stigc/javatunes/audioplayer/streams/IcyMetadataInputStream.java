@@ -2,7 +2,7 @@ package dk.stigc.javatunes.audioplayer.streams;
 
 import java.io.*;
 
-import dk.stigc.common.StringFunc;
+import dk.stigc.common.StringFunc3;
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 
@@ -27,13 +27,13 @@ public class IcyMetadataInputStream extends InputStream
 	private String parseIcyStreamTitle(String v)
 	{
 		v = v.trim();
-		if (StringFunc.startsWithIgnoreCase(v, "streamtitle='"))
+		if (StringFunc3.startsWithIgnoreCase(v, "streamtitle='"))
 		{
 			v = v.substring(13).trim();
 			int end = v.indexOf("';");
 			if (end>-1)
 				v = v.substring(0, end);
-			if (StringFunc.startsWithIgnoreCase(v, "Senest spillet:"))
+			if (StringFunc3.startsWithIgnoreCase(v, "Senest spillet:"))
 				v = v.substring(15).trim();
 		}
 		
@@ -63,7 +63,7 @@ public class IcyMetadataInputStream extends InputStream
 
 	public void trySetNowPlaying(String nowPlaying)
 	{
-		if (StringFunc.isNullOrEmpty(nowPlaying))
+		if (StringFunc3.isNullOrEmpty(nowPlaying))
 			return;
 		
 		nowPlaying = nowPlaying.trim();
@@ -71,10 +71,7 @@ public class IcyMetadataInputStream extends InputStream
 		//Sometimes it is only a "-"
 		if (nowPlaying.length()>1)
 		{
-			synchronized(audioInfo)
-			{
-				audioInfo.icyStreamTitle = nowPlaying;
-			}
+			audioInfo.setIcyTitle(nowPlaying);
 		}
 	}
 	

@@ -23,6 +23,8 @@ public class HlsInputStream extends InputStream
 				currentBytes = data.poll(10, TimeUnit.SECONDS);
 				if (currentBytes == null)
 					throw new IOException("Nothing from stream i 10 seconds");
+				if (currentBytes.length == 0)
+					return -1;
 			}
 			
 			if (currentBytes.length == currentIndex)
@@ -39,11 +41,4 @@ public class HlsInputStream extends InputStream
 			return -1;
 		}
 	}
-	
-	public static String byteArrayToHex(byte[] a) {
-		   StringBuilder sb = new StringBuilder(a.length * 2);
-		   for(byte b: a)
-		      sb.append(String.format("%02x", b));
-		   return sb.toString();
-		}	
 }

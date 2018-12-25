@@ -1,6 +1,6 @@
 package dk.stigc.javatunes.audioplayer.other;
 
-import dk.stigc.common.StringFunc;
+import dk.stigc.common.StringFunc3;
 
 public enum Codec
 {
@@ -15,7 +15,7 @@ public enum Codec
 	opus("Opus"),
 	//containers
 	mp4container("MP4"), //transforms -> aac, alac
-	ogg("Ogg"), //transforms -> vorbis, opus
+	oggcontainer("Ogg"), //transforms -> vorbis, opus
 	hlc("HLC") 
 	;
 	
@@ -28,24 +28,26 @@ public enum Codec
 
 	public static Codec extractCodecFromExtension(String filePath)
 	{
-		if (StringFunc.endsWithIgnoreCase(filePath, ".mp3"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".mp3"))
 			return mp3;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".ogg"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".ogg"))
 		 	return vorbis;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".flac"))		
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".flac"))		
 			return flac;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".fla"))		
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".fla"))		
 			return flac;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".wv"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".wv"))
 			return wavpack;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".mp4"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".mp4"))
 			return mp4container;
-		if (StringFunc.endsWithIgnoreCase(filePath, ".m4a"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".m4a"))
 			return mp4container;						
-		if (StringFunc.endsWithIgnoreCase(filePath, ".aac"))
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".aac"))
 			return aacadts;		
-		if (StringFunc.endsWithIgnoreCase(filePath, ".opus"))
-			return opus;	
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".opus"))
+			return opus;
+		if (StringFunc3.endsWithIgnoreCase(filePath, ".ts"))
+			return hlc;		
 		return unknown;
 	}
 
@@ -53,5 +55,4 @@ public enum Codec
 	{
 		return extractCodecFromExtension(filePath)!=unknown;
 	}
-	
 }

@@ -13,6 +13,7 @@ public class AudioInfo
 	public int icyMetaInt;
 	public String icyName, icyGenre, icyStreamTitle;
 	public Codec codec;
+	public String newLocation;
 	
 	@Override
 	public String toString()
@@ -27,7 +28,8 @@ public class AudioInfo
 			s += ", kbpsVariable=" + kbpsVar;
 		s += ", lengthInBytes=" + lengthInBytes;
 		s += ", codec=" + codec;
-		
+		if (newLocation != null)
+			s += ", newLocation=" + newLocation;		
 		if (icyName != null)
 			s += ", icyName=" + icyName;
 		if (icyGenre != null)

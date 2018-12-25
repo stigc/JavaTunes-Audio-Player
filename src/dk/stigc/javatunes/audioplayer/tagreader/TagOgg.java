@@ -1,6 +1,6 @@
 package dk.stigc.javatunes.audioplayer.tagreader;
 
-import dk.stigc.common.StringFunc;
+import dk.stigc.common.StringFunc3;
 import dk.stigc.javatunes.audioplayer.other.*;
 
 import java.io.*; 
@@ -151,7 +151,7 @@ public class TagOgg extends TagBase
 			
 		for (int i=0; i<tags.length; i++)
 		{
-			if (StringFunc.startsWithIgnoreCase(tag, tags[i]))
+			if (StringFunc3.startsWithIgnoreCase(tag, tags[i]))
 			{
 				boolean parseValue = !isCovertag(i) || (isCovertag(i) && decodeImage);
 				//Log.write("tag:" +tag);

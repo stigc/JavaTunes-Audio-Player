@@ -48,12 +48,9 @@ public class TagApeV2 extends TagBase
 					item = item.toLowerCase();
 					index += item.length() + 1; //+0byte
 					String value = null;
-					//Less than 10kb? This skips images.
-					if (itemSize<1024*10)
+					//Less than 2kb? This skips images.
+					if (itemSize<1024*2)
 						value = new String (v, index, itemSize, "UTF-8");
-					//Log.write(item + "=" + value);
-					//Log.write(item);
-					
 					
 					if (item.equals("artist"))
 						addArtist(value);

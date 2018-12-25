@@ -1,20 +1,16 @@
 package dk.stigc.javatunes.audioplayer.streams;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import dk.stigc.javatunes.audioplayer.other.Codec;
 import dk.stigc.javatunes.audioplayer.other.Log;
-import dk.stigc.javatunes.audioplayer.player.AudioInfoInternal;
 
-public class InputStreamWithTypeParser extends InputStream
+public class CodecParser
 {
-	InputStream in;
-	int bytesInBuffer, readFromBuffer;
 	private byte[] buffer;
 	public boolean isPlayList;
 	Charset cs = Charset.forName("ISO-8859-1");
+	public Codec codec;
 	
 	private boolean bufferStartsWith(int index, String tag)
 	{
@@ -33,22 +29,18 @@ public class InputStreamWithTypeParser extends InputStream
 		return Codec.vorbis;
 	}
 	
-	public InputStreamWithTypeParser(InputStream in, AudioInfoInternal audioInfo)
+	public CodecParser(byte[] bytes)
 	{
-		//application/vnd.apple.mpegurl
-		this.in = in;
-		
-		buffer = new byte[1024*10];
-		bytesInBuffer = InputStreamHelper.readToArray(in, buffer);
+		this.buffer = bytes;
 		
 		if (bufferStartsWith(0, "OggS"))
 		{
-			audioInfo.codec = getOggCodec();
-			Log.write("Parsed Ogg codec from stream : " + audioInfo.codec);
+			codec = getOggCodec();
+			Log.write("Parsed Ogg codec from stream : " + codec);
 		}
 		else if (isAdts())
 		{
-			audioInfo.codec = Codec.aacadts;
+			codec = Codec.aacadts;
 			Log.write("Parsed aacadts codec from stream");
 		}
 		else if (bufferStartsWith(0, "#EXTM3U") 
@@ -57,9 +49,8 @@ public class InputStreamWithTypeParser extends InputStream
 				|| bufferStartsWith(0, "https://")
 				)
 		{
-			Log.write("Parsed playlist from stream");
-			//Log.write("String is " + new String(buffer));
 			isPlayList = true;
+			Log.write("Parsed playlist from stream");
 		}
 	}
 
@@ -132,7 +123,7 @@ public class InputStreamWithTypeParser extends InputStream
 	
 	private boolean isAdts()
 	{
-		for (int i=0; i<bytesInBuffer-8; i++)
+		for (int i=0; i<buffer.length-8; i++)
 		{
 			int frameLength = isHeader(i);
 			
@@ -143,17 +134,5 @@ public class InputStreamWithTypeParser extends InputStream
 			return true;
 		}
 		return false;
-	}
-			
-
-	public int read() throws IOException 
-	{
-		if (readFromBuffer<bytesInBuffer)
-		{
-			readFromBuffer++;
-			return getBufferIndex(readFromBuffer-1);
-		}
-		
-		return in.read();
 	}
 }

@@ -3,7 +3,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,17 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import dk.stigc.javatunes.audioplayer.other.Codec;
-import dk.stigc.javatunes.audioplayer.other.Common;
-import dk.stigc.javatunes.audioplayer.other.Track;
-import dk.stigc.javatunes.audioplayer.player.AudioInfo;
-import dk.stigc.javatunes.audioplayer.player.AudioPlayer;
-import dk.stigc.javatunes.audioplayer.player.BasePlayer;
-import dk.stigc.javatunes.audioplayer.player.IAudio;
-import dk.stigc.javatunes.audioplayer.player.IAudioPlayerHook;
-import dk.stigc.javatunes.audioplayer.streams.HlsInputStream;
-import dk.stigc.javatunes.audioplayer.streams.HlsReader;
-import dk.stigc.javatunes.audioplayer.streams.InputStreamHelper;
+import dk.stigc.javatunes.audioplayer.other.*;
+import dk.stigc.javatunes.audioplayer.player.*;
 import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
 public class Tests
@@ -92,6 +82,10 @@ public class Tests
 			{
 				list.add("audioStarting");
 			}
+			@Override
+			public void tagsParsed(int sourceHashCode, AbstractTrack track)
+			{
+			}
 		});
 		
 		audioPlayer.play(track);
@@ -131,6 +125,10 @@ public class Tests
 			public void audioStarting(AudioInfo audio)
 			{
 				list.add("audioStarting");
+			}
+			@Override
+			public void tagsParsed(int sourceHashCode, AbstractTrack track)
+			{
 			}
 		});
 		
@@ -215,7 +213,7 @@ public class Tests
 	@Test
 	public void opusShoutcastWillWork() throws Exception
 	{
-		playFor5Seconds("http://dir.xiph.org/listen/2749113/listen.m3u");
+		playFor5Seconds("http://dir.xiph.org/listen/3485207/listen.m3u");
 	}
 	
 	@Test
@@ -271,7 +269,7 @@ public class Tests
 			seconds++;
 			Thread.sleep(1000);
 			player.printInfo();
-			if (seconds % 5 == 0)
+			if (seconds % 10 == 0)
 				player.playNextTrack();
 		}
 		
@@ -331,6 +329,12 @@ public class Tests
 
 	}
 
+	@Test
+	public void ertyert() throws Exception
+	{
+		playFor5Seconds("C:\\Users\\Stig\\Desktop\\failed.mp4");
+	}
+	
 	@Test
 	public void bps24WillWork() throws Exception
 	{
@@ -394,6 +398,14 @@ public class Tests
 	}
 	
 	@Test
+	public void tagReadingRemonteWillWork() throws Exception
+	{
+		playFor5Seconds("http://stigc.dk/audiofiles/1.ogg");
+		playFor5Seconds("http://stigc.dk/audiofiles/2.opus");
+		playFor5Seconds("http://stigc.dk/audiofiles/3.flac");
+	}
+	
+	@Test
 	public void pauseShouldWork() throws Exception
 	{
 		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
@@ -404,19 +416,39 @@ public class Tests
 		audioPlayer.pause(); //allowed more than 1..
 		Thread.sleep(2000);
 		
-		write("pause");
+		write("start");
 		audioPlayer.start();
 		audioPlayer.start(); //allowed more than 1..
 		Thread.sleep(2000);
 		
-		write("pause and play");
+		write("pause");
+		audioPlayer.pause();
+		Thread.sleep(1000);
+		
+		write("start");
+		audioPlayer.start();
+		Thread.sleep(1000);
+		
+		write("pause and play next");
 		audioPlayer.pause();
 		audioPlayer.play(path);
 		Thread.sleep(2000);
-		Thread.sleep(2000);
+		
 		audioPlayer.stopAndWaitUntilPlayerThreadEnds();
 	}
 
+	@Test
+	public void pauseShouldWork2() throws Exception
+	{
+		String path = root + "MP3\\id3v2.4 UTF-8 Nanna.mp3";
+		AudioPlayer audioPlayer = new AudioPlayer();
+		audioPlayer.play(path);
+		Thread.sleep(2000);
+		audioPlayer.pause();
+		Thread.sleep(2000);
+		
+	}
+	
 	@Test
 	public void displayMixerInfo()
 	{
@@ -456,6 +488,7 @@ public class Tests
 	{
 		playForXSeconds(path, null, seconds);
 	}
+	
 	private void playFor5Seconds(String path) throws Exception
 	{
 		playForXSeconds(path, null, 5);

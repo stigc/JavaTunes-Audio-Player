@@ -26,7 +26,8 @@ public class AudioImpl implements IAudio
 	@Override
 	public Codec getCodec()
 	{
-		return Codec.extractCodecFromExtension(path);
+		//This will let the player decide the Codec
+		return null;
 	}
 
 }

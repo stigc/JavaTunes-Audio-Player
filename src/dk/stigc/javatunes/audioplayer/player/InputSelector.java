@@ -3,9 +3,12 @@ package dk.stigc.javatunes.audioplayer.player;
 import java.io.*;
 import java.nio.charset.Charset;
 
-import dk.stigc.common.StringFunc;
+import dk.stigc.common.StringFunc3;
 import dk.stigc.javatunes.audioplayer.other.*;
 import dk.stigc.javatunes.audioplayer.streams.*;
+import dk.stigc.javatunes.audioplayer.tagreader.TagBase;
+import dk.stigc.javatunes.audioplayer.tagreader.TagOgg;
+import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
 public class InputSelector
 {
@@ -17,76 +20,91 @@ public class InputSelector
     
 	public InputStream getInputStream(IAudio audio, AudioInfoInternal audioInfo) throws Exception
 	{
-		isRemote = StringFunc.startsWithIgnoreCase(audio.getPath(), "http");
+		isRemote = StringFunc3.startsWithIgnoreCase(audio.getPath(), "http");
 		
-		if (!isRemote)
+		if (isRemote)
+			return getRemoteStream(audio.getPath(), audioInfo);
+		
+		File file = new File(audio.getPath());
+		if (file.exists() == false || file.isDirectory())
+			throw new Exception(file.getAbsolutePath() + " does not exists");
+		
+		contentLength = file.length();
+		
+		if (isOggContainer(audioInfo))
+			findOggGranules(file);
+		
+		if (audioInfo.isCodec(Codec.mp4container))
 		{
-			//Todo: unknown codec?
-			File file = new File(audio.getPath());
-			if (file.exists() == false || file.isDirectory())
-				throw new Exception(file.getAbsolutePath() + " does not exists");
-			contentLength = file.length();
-			
-			if (audio.getCodec() == Codec.vorbis
-					|| audio.getCodec() == Codec.opus
-							|| audio.getCodec() == Codec.ogg)
-				findOggGranules(audio);
-			
-			return new FileInputStream(file);
+			Track track = new TagReaderManager().read(file);
+    		if (track != null)
+    			audioInfo.setCodec(track.codec);
 		}
-		
-		return getHttpInputStream(audio.getPath(), audio, audioInfo, null);
+			
+		return new FileInputStream(file);
 	}
 
-	private InputStream getHttpInputStream(String url, IAudio audio, AudioInfoInternal audioInfo, String cookie) throws Exception, UnsupportedEncodingException, IOException
+	private boolean isOggContainer (AudioInfoInternal audioInfo)
 	{
-		if (audio.getCodec() == Codec.vorbis
-				|| audio.getCodec() == Codec.opus
-						|| audio.getCodec() == Codec.ogg)
-			findOggGranulesOnRemoteFile(audio);
+		return audioInfo.getCodec() == Codec.vorbis 
+				|| audioInfo.getCodec() == Codec.opus
+				|| audioInfo.getCodec() == Codec.oggcontainer;
+	}
+	
+	private InputStream getRemoteStream(String url, AudioInfoInternal audioInfo) throws Exception, UnsupportedEncodingException, IOException
+	{
+		if (url == null)
+			url = audioInfo.getNewLocation();
 		
 		InputStreamHelper ish = new InputStreamHelper();
-		InputStream is = ish.getHttpWithIcyMetadata(url, audioInfo, cookie);
+		InputStreamImpl is = ish.getHttpWithIcyMetadata(url, audioInfo);
 		contentLength = ish.contentLength;
 		
-		if (audioInfo.codec == Codec.hlc)
+		if (audioInfo.isCodec(Codec.hlc))
 		{
 			contentLength = 0;
 			HlsInputStream hlsStream = new HlsInputStream();
-			HlsReader reader = new HlsReader(url, is, hlsStream);
+			HlsSegmentsReader reader = new HlsSegmentsReader(url, is, hlsStream);
 			reader.start();
 			return hlsStream;
 		}
-		else if (audioInfo.codec == Codec.unknown || audioInfo.codec == Codec.ogg)
+		else if (audioInfo.isCodec(Codec.unknown, Codec.oggcontainer))
     	{
-    		InputStreamWithTypeParser parser = new InputStreamWithTypeParser(is, audioInfo);
-    		
+			CodecParser parser = new CodecParser(is.getBuffer());
+			
     		if (parser.isPlayList)
     		{
-    			String url2 = parsePlayListFindFirstPath(parser);
-    			Common.close(parser);
+    			String url2 = parsePlayListFindFirstPath(is);
     			if (url2 == null)
     				throw new Exception("Cannot read .m3u or .pls");
-    			return getHttpInputStream(url2, audio, audioInfo, cookie);
+    			audioInfo.setNewLocation(url2);
+    			return getRemoteStream(null, audioInfo);
+    		} 
+    		else if (parser.codec != null)
+    		{
+    			audioInfo.setCodec(parser.codec);
     		}
-    		
-    		is = parser;
     	}
     	
-    	if (audioInfo.codec == Codec.unknown)
-    		audioInfo.codec = Codec.mp3;
+    	if (audioInfo.isCodec(Codec.unknown))
+    		audioInfo.setCodec(Codec.mp3);
+    	
+    	//playing file via http
+    	if (contentLength != -1 && isOggContainer(audioInfo))
+			findOggGranulesOnRemoteFile(url);
 		
 		if (ish.icyMetaInt > 0)
-			is = new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
+			return new IcyMetadataInputStream(is, audioInfo, ish.icyMetaInt);
+		
 		return is;
 	}
 
 	//Very simple .pls and .m3u parser.
-	private String parsePlayListFindFirstPath(InputStreamWithTypeParser parser)
+	private String parsePlayListFindFirstPath(InputStream is)
 			throws UnsupportedEncodingException, IOException
 	{
 		String path = null;
-		BufferedReader br = new BufferedReader(new InputStreamReader(parser, "UTF-8"));
+		BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 		for (int i=0; i<100 && path == null; i++)
 		{
 			String line = br.readLine();
@@ -102,14 +120,14 @@ public class InputSelector
 		return path;
 	}
 	
-	void findOggGranulesOnRemoteFile(IAudio song)
+	void findOggGranulesOnRemoteFile(String url)
 	{
 		try
 		{
 			InputStreamHelper ish = new InputStreamHelper();
 			byte[] data = new byte[bufferSize];
 			String range = "bytes=-" + bufferSize;
-			InputStream is = ish.getHttp(song.getPath(), range);
+			InputStream is = ish.getHttp(url, range);
 			
 			if (ish.contentLength >= 0)
 			{
@@ -125,11 +143,10 @@ public class InputSelector
         }  		
 	}
 	
-	void findOggGranules(IAudio song)
+	void findOggGranules(File file)
 	{
 		try
 		{
-			File file = new File(song.getPath());
 			long length = file.length();
 			FileInputStream fis = new FileInputStream(file);
 	    	BufferedInputStream bis = new BufferedInputStream(fis);

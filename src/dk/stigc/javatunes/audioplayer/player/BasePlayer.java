@@ -7,6 +7,7 @@ import java.nio.ByteOrder;
 import javax.sound.sampled.LineUnavailableException;
 
 import dk.stigc.javatunes.audioplayer.other.*;
+import dk.stigc.javatunes.audioplayer.streams.CopyInputstream;
 import javaFlacEncoder.FLACEncoder;
 import javaFlacEncoder.FLACFileOutputStream;
 import javaFlacEncoder.StreamConfiguration;
@@ -27,16 +28,19 @@ abstract public class BasePlayer extends Thread
 	private boolean bigEndian;
 	private double startGain;
 	private double tagReplayGain = 1;
+	protected long lengthInBytes;
 	private volatile static double globalReplayGain = 1;
 		
 	public void initialize(InputStream in, IAudio audio, AudioInfoInternal audioInfo
-			, double startGain, boolean isAlbumMode)
+			, double startGain, boolean isAlbumMode, long lengthInBytes) throws FileNotFoundException
 	{
 		setPriority(MAX_PRIORITY);
 		this.audio = audio;
 		this.audioInfo = audioInfo;
 		this.startGain = startGain;		
-
+		this.lengthInBytes = lengthInBytes;
+		
+		//bin = new BufferedInputStream(new CopyInputstream(in));
 		bin = new BufferedInputStream(in);
 		
 		double db = audio.getReplayGain(isAlbumMode);
@@ -57,7 +61,7 @@ abstract public class BasePlayer extends Thread
 	{
 		int bytesPerSecond = channels * rate * (bps/8);
 		double seconds = (double)totalBytes / bytesPerSecond;
-		audioInfo.positionInMs =  (long)(seconds * 1000);
+		audioInfo.setPositionInMs((long)(seconds * 1000));
 	}
 
   	private int applyGain(int v, double gain)
@@ -130,8 +134,11 @@ abstract public class BasePlayer extends Thread
   		totalBytes += length;
 
   		int index = 0;
+  		
   		while (running)
   		{
+  			playBackApi.waitIfPaused();
+  			
   			index += playBackApi.write(pcm, index, length-index);
   			
   			if (index >= length)

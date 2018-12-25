@@ -2,7 +2,7 @@ package dk.stigc.javatunes.audioplayer.other;
 
 import java.util.*;
 
-import dk.stigc.common.StringFunc; 
+import dk.stigc.common.StringFunc3; 
 
 public class StringList extends ArrayList<String>
 {
@@ -93,7 +93,7 @@ public class StringList extends ArrayList<String>
   	{
   		for (String s: this)
   		{
-  			if (StringFunc.indexOfIgnoreCase(s, text) != -1)
+  			if (StringFunc3.indexOfIgnoreCase(s, text) != -1)
   				return true;
   		}	
   		return false;

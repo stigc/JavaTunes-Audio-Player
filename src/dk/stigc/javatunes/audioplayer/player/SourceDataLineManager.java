@@ -3,6 +3,7 @@ package dk.stigc.javatunes.audioplayer.player;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sound.sampled.*;
 import javax.sound.sampled.AudioFormat.Encoding;
@@ -13,10 +14,10 @@ class SourceDataLineManager implements IPlayBackAPI
 {
 	private boolean outputToMixer = true;
 	private AudioFormat audioFormat;
-	public volatile boolean paused;
+	private boolean paused;
 	private SourceDataLine out;
 	private int bufferSizeInKb;
-	FlacEncoder flacEncoder;
+	private FlacEncoder flacEncoder;
 	
 	public boolean flacOutputIsEnabled()
 	{
@@ -54,7 +55,7 @@ class SourceDataLineManager implements IPlayBackAPI
 		}
 	}
 	
-	public void pause()
+	public synchronized void pause()
 	{
 		paused = true;
 		
@@ -62,19 +63,47 @@ class SourceDataLineManager implements IPlayBackAPI
 			out.stop();
 	}
 	
-	public void start()
+	public synchronized void start()
 	{
 		paused = false;
 		
 		if (out != null)
 			out.start();
+		
+		this.notify();
+	}
+
+	public synchronized void setBufferSize(int sizeInKb)
+	{
+		bufferSizeInKb = sizeInKb;
+	}
+
+	public synchronized boolean isPaused()
+	{
+		return paused;
+	}
+	
+	public synchronized void waitIfPaused()
+	{
+		while (paused)
+		{
+			try
+			{
+				Log.write("Waiting, is paused");
+				this.wait();
+			} 
+			catch (InterruptedException e)
+			{
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	public synchronized int write(byte[] data, int start, int length)
   	{	
 		if (!outputToMixer)
 			return length;
-		
+
 		return out.write(data, start, length);
   	}
 	
@@ -110,9 +139,14 @@ class SourceDataLineManager implements IPlayBackAPI
   		Log.write("AudioFormat set to " + audioFormat);
   				
 		if (bufferSizeInKb>0)
+		{
+			Log.write("Using explicit buffer size " + bufferSizeInKb + " KB");
 			out.open(audioFormat, bufferSizeInKb*1024);
+		}
 		else
+		{
 			out.open(audioFormat);
+		}
 		
 		setVolume(gain);
 

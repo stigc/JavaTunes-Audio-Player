@@ -61,17 +61,13 @@ public class MP3Player extends BasePlayer
     private void extractBitrateAndPlayLength(Header h) throws Exception
     {
     	isVbr = h.vbr();
-		int lengtInSeconds = (int)(h.total_ms((int)audioInfo.lengthInBytes)/1000);
+		int lengtInSeconds = (int)(h.total_ms((int)lengthInBytes)/1000);
 		int kbps = h.bitrate()/1000;
-
-		synchronized (audioInfo)
-		{
-			audioInfo.kbps = kbps;
-		}
+		audioInfo.setKbps(kbps);
 		
 		//Hmm no length in header. Calculate from filesize and CBR header.
-		if (lengtInSeconds==0 && audioInfo.lengthInBytes>0 && kbps>0)
-			lengtInSeconds = (int)audioInfo.lengthInBytes/((kbps/8)*1000);
+		if (lengtInSeconds==0 && lengthInBytes>0 && kbps>0)
+			lengtInSeconds = (int)lengthInBytes/((kbps/8)*1000);
 		
 		audioInfo.setLengthInSeconds(lengtInSeconds);
     } 

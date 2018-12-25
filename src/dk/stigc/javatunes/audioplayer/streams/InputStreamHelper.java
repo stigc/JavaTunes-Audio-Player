@@ -10,11 +10,10 @@ import dk.stigc.javatunes.audioplayer.player.IAudio;
 
 public class InputStreamHelper
 {
-	public boolean loggerHeadres;
+	public boolean logHeaders;
 	public int contentLength;
 	public int icyMetaInt;
 	private String contentType, icyName, icyGenre;
-	private String cookie;
 	private URLConnection createConnection(String location) throws IOException
 	{
 		location = location.replace('\\','/');
@@ -38,30 +37,21 @@ public class InputStreamHelper
 	}
 	
 	
-	public InputStream getHttpWithIcyMetadata(String url, AudioInfoInternal audioInfo, String cookie) throws Exception
+	public InputStreamImpl getHttpWithIcyMetadata(String url, AudioInfoInternal audioInfo) throws Exception
 	{
 		URLConnection conn = createConnection(url);
-        //String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36";
         conn.setRequestProperty("User-Agent", "JavaTunesPlayer"); 
-        //conn.setRequestProperty("Icy-MetaData", "1");
-        if (cookie != null)
-        	conn.setRequestProperty("Set-Cookie", cookie);
-        else 
-        	conn.setRequestProperty("Icy-MetaData", "1");
+        conn.setRequestProperty("Icy-MetaData", "1");
         InputStream is = getRemoteInputStreamImpl(conn);
 
-        //Set AudioInfo
-
-		if (icyMetaInt>0)
+        if (icyMetaInt>0)
 		{
-			audioInfo.icyMetaInt = icyMetaInt;
-			audioInfo.icyName = icyName;
-			audioInfo.icyGenre = icyGenre;
+			audioInfo.setIcyData(icyMetaInt, icyName, icyGenre);
 		}
 			
         setCodecFromContentType(audioInfo);
         
-        return is;
+        return new InputStreamImpl(is);
 	}
 	
 	private void setCodecFromContentType(AudioInfoInternal audioInfo)
@@ -69,31 +59,30 @@ public class InputStreamHelper
         if (contentType != null)
         {
         	if (contentType.equals("video/mp4"))
-        		audioInfo.codec = Codec.aac;
+        		audioInfo.setCodec(Codec.aac);
         	else if (contentType.equals("audio/aac"))
-        		audioInfo.codec = Codec.aac;
+        		audioInfo.setCodec(Codec.aac);
         	else if (contentType.equals("audio/ogg"))
-        		audioInfo.codec = Codec.ogg;
+        		audioInfo.setCodec(Codec.oggcontainer);
         	else if (contentType.equals("audio/ogg; codecs=vorbis"))
-        		audioInfo.codec = Codec.vorbis;        	
+        		audioInfo.setCodec(Codec.vorbis);        	
         	else if (contentType.equals("audio/ogg; codecs=opus"))
-        		audioInfo.codec = Codec.opus;
+        		audioInfo.setCodec(Codec.opus);
         	else if (contentType.equals("audio/ogg; codecs=flac"))
-        		audioInfo.codec = Codec.flac;        	
+        		audioInfo.setCodec(Codec.flac);        	
         	else if (contentType.equals("audio/flac"))
-        		audioInfo.codec = Codec.flac;
+        		audioInfo.setCodec(Codec.flac);
         	else if (contentType.equals("audio/mp3"))
-        		audioInfo.codec = Codec.mp3;
+        		audioInfo.setCodec(Codec.mp3);
         	else if (contentType.equals("audio/mp3"))
-        		audioInfo.codec = Codec.mp3;
+        		audioInfo.setCodec(Codec.mp3);
         	else if (contentType.contains("vnd.apple.mpegurl"))
-        		audioInfo.codec = Codec.hlc;            	
+        		audioInfo.setCodec(Codec.hlc);            	
         }
 	}
 	
 	private InputStream getRemoteInputStreamImpl(URLConnection url) throws IOException
 	{
-		
 		HttpURLConnection httpConnection = (HttpURLConnection)url;
 		httpConnection.setInstanceFollowRedirects(true);
 		int maxTries = 3;
@@ -103,7 +92,6 @@ public class InputStreamHelper
     		try
     		{
     			maxTries--;
-    			
 
     			httpConnection.connect();
     			
@@ -112,17 +100,16 @@ public class InputStreamHelper
 				if (httpStatus == 404)
 					throw new FileNotFoundException("404");
 				
-				if (httpStatus != 200)
-					Log.write ("Not http 200 status -> " + httpStatus);
+				//if (httpStatus != 200)
+				//	Log.write ("Not http 200 status -> " + httpStatus);
 				
 				icyMetaInt = httpConnection.getHeaderFieldInt("icy-metaint", 0);
 				icyName = httpConnection.getHeaderField("icy-name");
 				icyGenre = httpConnection.getHeaderField("icy-genre");
-				cookie = httpConnection.getHeaderField("Set-Cookie");
 				contentLength = httpConnection.getContentLength();
 				contentType = httpConnection.getContentType();
 				
-				if (loggerHeadres)
+				if (logHeaders)
 				{
 					for (Map.Entry<String, List<String>> entry : httpConnection.getHeaderFields().entrySet())
 					{
@@ -180,6 +167,20 @@ public class InputStreamHelper
 		return index;
         //if (index<size)
         //	Log.write("[ERROR reading full buffer : " + index + "]"); 
+	}
+	
+	public static byte[] readBytes(InputStream in, int max) throws IOException
+	{
+		ByteArrayOutputStream baos = new ByteArrayOutputStream(max);
+		byte[] buf = new byte[2048];
+		int n=0;		
+		while ((n = in.read(buf)) > 0)
+		{
+			baos.write(buf, 0, n);
+			if (baos.size() > max)
+				break;
+		}
+		return baos.toByteArray();
 	}
 	
 	public static byte[] readBytes(InputStream in)

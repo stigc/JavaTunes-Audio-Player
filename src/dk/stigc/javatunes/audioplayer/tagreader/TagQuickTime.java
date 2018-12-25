@@ -25,6 +25,7 @@ public class TagQuickTime extends TagBase
 		tagFound= true;
 		return new String(v, from, length, "UTF-8");
 	}
+	
 	private void readSubAtom(int offset, int length, int level, String hierarchy) throws Exception
 	{
 		String boxTypeName = "";
@@ -37,7 +38,6 @@ public class TagQuickTime extends TagBase
 				break;
 			
 			String subAtomName = new String(v, index+4, 4, "ISO-8859-1");
-			
 			
 			if (containers.contains(subAtomName))
 				readSubAtom(index+8, subAtomSize-8, level+1, hierarchy + "/" + subAtomName);

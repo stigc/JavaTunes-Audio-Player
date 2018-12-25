@@ -33,39 +33,28 @@ public class FileBuffer
 		Common.close(bis);
 	}
 	
-	public int loadEnd(int bytes)
+	public int loadEnd(int bytes) throws IOException
 	{
-		try
-		{
-			//crossing Max?	
-			if (bytes>max) 
-				bytes=max;
-							
-			in.getChannel().position(0);
-			int skip = fileLength-bytes;
-			in.skip(skip);
-        	in.read(buffer, 0, bytes);		
-			readBytes = bytes;
-		}
-		catch(Exception e)
-		{
-		}
-		
+		//crossing Max?	
+		if (bytes>max) 
+			bytes=max;
+						
+		in.getChannel().position(0);
+		int skip = fileLength-bytes;
+		in.skip(skip);
+    	in.read(buffer, 0, bytes);		
+		readBytes = bytes;
 		return readBytes;
 	}	
 	
-	public void loadEnd()
+	public void loadEnd() throws IOException
 	{
-		try
-		{
-			//Mp3 id3v1 - last 128 bytes...
-			int skip = fileLength-128;
-			in.getChannel().position(0);
-			in.skip(skip);
-        	in.read(buffer, 0, 128);		
-			readBytes = 128;
-		}
-		catch(Exception e) {}
+		//Mp3 id3v1 - last 128 bytes...
+		int skip = fileLength-128;
+		in.getChannel().position(0);
+		in.skip(skip);
+    	in.read(buffer, 0, 128);		
+		readBytes = 128;
 	}
 		
 	public int ensureBufferLoad(int bytes)

@@ -25,7 +25,6 @@ abstract public class TagBase extends AbstractTrack
 			parseImp(fb, external);
 			if (tagFound)
 				cleanUpData();
-			
 		}
 		catch (Exception ex)
 		{
@@ -37,23 +36,20 @@ abstract public class TagBase extends AbstractTrack
 
 	public void addYear(String v)
 	{
-		v = cleanYear(v);
-		if (v.length()>0)
-			year = Integer.parseInt(v);
+		int tmp = parseNumberFromString(v);
+		
+		if (tmp >= 1000 || tmp <= 9999)
+			year = tmp;
 	}
 
 	public void addDiscNumber(String v)
 	{
-		v = getTrackNumber(v);
-		if (v.length()>0)
-			discNumber = Integer.parseInt(v);
+		discNumber = parseNumberFromString(v);
 	}
 	
 	public void addTrackNumber(String v)
 	{
-		v = getTrackNumber(v);
-		if (v.length()>0)
-			trackNumber = Integer.parseInt(v);
+		trackNumber = parseNumberFromString(v);
 	}
 		
 	public void addGenre(String v)
@@ -80,38 +76,30 @@ abstract public class TagBase extends AbstractTrack
 			lyrics = lyrics.trim(); 
 	}
 	
-	private static String cleanYear(String v) 
+	private static int parseNumberFromString(String str) 
 	{
-		String r = "";
-		if (v.length()<4) return "";
-		
-		for (int i=0; i<4; i++)
-			if (Character.isDigit(v.charAt(i)))
-				r += v.charAt(i);
-			else
-				return "";
-		return r;
-	}
-		
-	private static String getTrackNumber(String v) 
-	{
-		String r = "";
-		for (int i=0; i<v.length(); i++)
+		String onlyDigits = "";
+		for (int i=0; i<str.length(); i++)
 		{
-			char c = v.charAt(i);
+			char c = str.charAt(i);
 			if (Character.isDigit(c)) 
-				r+=c;
-			//Break ved ikke tal, når vi er begyndt at samle tal.
+			{
+				//no leading zeroes
+				if (c == '0' && onlyDigits.length() == 0)
+					continue;
+				onlyDigits+=c;
+			}
+			//stop at first non digit
 			else
 			{
-				if (r.length()>0)
+				if (onlyDigits.length()>0)
 					break;
 			}
 		}
-	
-		if (r.length()>2) 
-			r = "99"; //Ikke mere end 99!
-		return r;
+		
+		if (onlyDigits.length()==0)
+			return 0;
+		return Integer.parseInt(onlyDigits);
 	}
 
 	protected double getRG(String v, int index) 
@@ -136,7 +124,6 @@ abstract public class TagBase extends AbstractTrack
 		}
 		return replaygain;
 	}	
-
 
     public static int synchSafeBytesToInt(byte[] buffer, int start) 
     {

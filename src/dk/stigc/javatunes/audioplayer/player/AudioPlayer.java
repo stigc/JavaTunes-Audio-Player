@@ -3,6 +3,7 @@ package dk.stigc.javatunes.audioplayer.player;
 import java.io.*;
 
 import dk.stigc.javatunes.audioplayer.other.*;
+import dk.stigc.javatunes.audioplayer.streams.InputStreamImpl;
 import dk.stigc.javatunes.audioplayer.tagreader.*;
 
 public class AudioPlayer
@@ -11,6 +12,8 @@ public class AudioPlayer
 	private volatile int volume;
     private BasePlayer player = new VoidPlayer();
     private SourceDataLineManager dlm = new SourceDataLineManager();
+    public boolean readTagsFromRemoteStreams = false;
+    
 	public AudioPlayer()
 	{
 		this.setVolume(100);		
@@ -80,7 +83,7 @@ public class AudioPlayer
 
     public boolean isPaused()
     {
-    	return dlm.paused;
+    	return dlm.isPaused();
     }
     
 	public synchronized void play(String path) throws Exception
@@ -97,23 +100,30 @@ public class AudioPlayer
 	{
     	if (player.ended == false)
     		stop();
-    	
-    	AudioInfoInternal audioInfo = new AudioInfoInternal(audio.hashCode());
-    	audioInfo.codec = audio.getCodec();
+
+    	AudioInfoInternal audioInfo = new AudioInfoInternal(audio);
     	
     	InputSelector inputStreamSelector = new InputSelector();
     	InputStream is = inputStreamSelector.getInputStream(audio, audioInfo);
-		audioInfo.lengthInBytes = inputStreamSelector.contentLength;
+		audioInfo.setLengthInBytes(inputStreamSelector.contentLength);
 
-    	extractMp4ContainerCodec(audio, audioInfo, inputStreamSelector);
-    	
-    	switch (audioInfo.codec)
+		//is.skip(1024*5*188*51);
+		
+		if (readTagsFromRemoteStreams && is instanceof InputStreamImpl)
+		{
+			AbstractTrack track = BufferTagReader.Parse(((InputStreamImpl)is).getBuffer());
+			Log.write("Tag parsed: " + track);
+			if (hook != null)
+				hook.tagsParsed(audio.hashCode(), track);
+		}
+		
+    	switch (audioInfo.getCodec())
 		{
 			case flac:
 				player = new FLACPlayer();
 				break;
 			case vorbis:
-			case ogg:				
+			case oggcontainer:				
 				player = new OggPlayer(inputStreamSelector.granules);
 				break;
 			case wavpack:
@@ -143,29 +153,14 @@ public class AudioPlayer
 		
 		player.hook = hook;
 		player.playBackApi = dlm;
-		player.initialize(is, audio, audioInfo, gain, isAlbumMode);	
+		player.initialize(is, audio, audioInfo, gain, isAlbumMode, inputStreamSelector.contentLength);	
 		player.start();
-		
+
 		dlm.start();
 		
 		Log.write(player.getClass().getSimpleName() + " -> " + audio.getPath());
 	}
 
-	private void extractMp4ContainerCodec(IAudio audio,
-			AudioInfoInternal audioInfo,
-			InputSelector inputStreamSelector)
-			throws FileNotFoundException
-	{
-    	if (audioInfo.codec == Codec.mp4container 
-    			&& inputStreamSelector.isRemote == false)
-    	{
-    		File file = new File(audio.getPath());
-    		Track track = new TagReaderManager().read(file);
-    		if (track != null)
-    			audioInfo.codec = track.codec;
-    	}
-	}
-    
     public int getVolume()
     {
     	return volume;
@@ -204,5 +199,10 @@ public class AudioPlayer
 	public void setOutputToMixer(boolean value)
 	{
 		dlm.setOutputToMixer(value);
+	}
+	
+	public void setBufferSize(int sizeInKb)
+	{
+		dlm.setBufferSize(sizeInKb);
 	}
 }

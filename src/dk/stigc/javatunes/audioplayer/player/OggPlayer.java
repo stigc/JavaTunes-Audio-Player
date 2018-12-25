@@ -161,22 +161,14 @@ public class OggPlayer extends BasePlayer
 	  int lengthInSeconds = 0;
 	  if (granules > 0) 
 		  lengthInSeconds = granules / vi.rate;
-	  else if (audioInfo.lengthInBytes > 0)
-		  lengthInSeconds = (int)(audioInfo.lengthInBytes * 8 / vi.bitrate_nominal);
+	  else if (lengthInBytes > 0)
+		  lengthInSeconds = (int)(lengthInBytes * 8 / vi.bitrate_nominal);
 	  
 	  if (audioInfo.setLengthInSeconds(lengthInSeconds) == false)
-	  {
-		  synchronized (audioInfo)
-		  {
-		  	audioInfo.kbps = vi.bitrate_nominal/1000;
-		  }
-	  }
-	//Log.write("3");
-		//cb.sendMessage(null, "UpdateSongInfo");
-      	//createOutputLine(vi.channels, vi.rate);
-//      	Log.write ("
-      	initAudioLine(vi.channels, vi.rate, 16, true, false);
-      	
+		  audioInfo.setKbps(vi.bitrate_nominal/1000);
+
+	  initAudioLine(vi.channels, vi.rate, 16, true, false);
+      	    
       	//setVolume(gain);
       	//timer = System.currentTimeMillis();
   		//Log.write ("available: " + outputLine.available());

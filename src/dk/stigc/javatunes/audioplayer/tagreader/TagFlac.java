@@ -9,7 +9,8 @@ public class TagFlac extends TagOgg
 
 	private void findMetaDataBlocks(byte[] data, FileBuffer fb)
 	{
-		fb.ensureBufferLoad(8); //header+streamInfoblock
+		if (fb != null)
+			fb.ensureBufferLoad(8); //header+streamInfoblock
 		
 		//Skip mandatory streamInfo block
 		int skip = 4;
@@ -24,7 +25,8 @@ public class TagFlac extends TagOgg
 		while ((headerFirstByte & 128) != 128)
 		{	
 			//Prepare read of header
-			fb.ensureBufferLoad(skip+1+3);
+			if (fb != null)
+				fb.ensureBufferLoad(skip+1+3);
 			
 			//Read first byte
 			//Log.write("skip: " + skip);
@@ -84,7 +86,8 @@ public class TagFlac extends TagOgg
 		if (commentsSize>0)
 		{
 			//Ensure data
-			fb.ensureBufferLoad(commentsStart+commentsSize);
+			if (fb != null)
+				fb.ensureBufferLoad(commentsStart+commentsSize);
 			
 			//Read comment header
 			int index = commentsStart;
@@ -97,7 +100,8 @@ public class TagFlac extends TagOgg
 			for (int i=0; i<comments; i++)
 			{
 				//read length
-				fb.ensureBufferLoad(index+4);
+				if (fb != null)
+					fb.ensureBufferLoad(index+4);
 				int length = (int)toulong(read32(v, index));
 				index+=4;
 				
@@ -115,7 +119,8 @@ public class TagFlac extends TagOgg
 			if (decodeImage)
 			{
 				//Ensure data
-				fb.ensureBufferLoad(pictureStart+pictureSize);
+				if (fb != null)
+					fb.ensureBufferLoad(pictureStart+pictureSize);
 				byte[] img = new byte[pictureSize];
 				//arraycopy(Object src, int srcPos, Object dest, int destPos, int length) 
 				System.arraycopy(v, pictureStart, img, 0, pictureSize);	

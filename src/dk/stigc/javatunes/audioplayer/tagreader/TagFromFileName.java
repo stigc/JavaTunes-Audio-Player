@@ -1,5 +1,7 @@
 package dk.stigc.javatunes.audioplayer.tagreader;
 
+import dk.stigc.common.StringFunc3;
+
 public class TagFromFileName extends TagBase
 { 
 	public String path;
@@ -36,23 +38,27 @@ public class TagFromFileName extends TagBase
     }
     
     	
-	public static String[] getMetaDataFromFileName(String v) 
+	public static String[] getMetaDataFromFileName(String filePath) 
 	{
-		v = trimToFirstLetter(v);
-		int index = v.indexOf("-");
+		String str = trimToFirstLetter(filePath);
+		
+		if (StringFunc3.isNullOrEmpty(str))
+			return new String[] {"", filePath};
+		
+		int index = str.indexOf("-");
 		String arr[] = new String[2];
 		
 		if (index>0)
 		{
 			
-			arr[0] = v.substring(0,index).replace('_', ' ').trim();
-			arr[1]= v.substring(index+1).replace('_', ' ').trim();
+			arr[0] = str.substring(0,index).replace('_', ' ').trim();
+			arr[1]= str.substring(index+1).replace('_', ' ').trim();
 			return arr;
 		}
 		else
 		{
 			arr[0] = "Unknown";
-			arr[1] = v.replace('_', ' ').trim();
+			arr[1] = str.replace('_', ' ').trim();
 		}
 		
 		return arr;

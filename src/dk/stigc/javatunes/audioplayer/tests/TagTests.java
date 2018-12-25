@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import org.junit.Test;
 
+import dk.stigc.javatunes.audioplayer.other.Log;
 import dk.stigc.javatunes.audioplayer.other.Track;
 import dk.stigc.javatunes.audioplayer.tagreader.TagReaderManager;
 
@@ -41,10 +42,10 @@ public class TagTests
 	@Test
 	public void oggOpusComments() throws Exception
 	{
-		File file = new File(root + "opus\\1.opus");
+		File file = new File(root + "opus\\04 - Within.opus");
 		Track track = new TagReaderManager().read(file);
-		assertEquals("Track [artists=Ne-Yo, album=Libra Scale, title=One In A Million"
-				+ ", genres=R&B/Soul, year=2010, trackNumber=06, codec=opus, embededCover]"
+		assertEquals("Track [artists=Daft Punk, album=Random Access Memories, title=Within"
+				+ ", genres=Electronic, year=2013, trackNumber=04, codec=opus]"
 				, track.toString());
 	}	
 	
@@ -58,4 +59,23 @@ public class TagTests
 				+ ", replaygain=-3.94, replaygainAlbumMode=-8.48]"
 				, track.toString());
 	}	
+	
+	@Test
+	public void trackNumberTesting() throws Exception
+	{
+		File file = new File("f:\\musik\\blandet 3\\01 - abigail mead, nigel goulding - full metal jacket.mp3");
+		Track track = new TagReaderManager().read(file);
+		assertEquals(1, track.trackNumber);
+	}	
+	
+	@Test
+	public void trackNumberTestign2() throws Exception
+	{
+		File file = new File("f:\\musik\\brandi carlile\\the story\\01 - late morning lullaby.mp3");
+		Track track = new TagReaderManager().read(file);
+		Log.write(""+track.discNumber);
+	}	
+	
+	
+	
 }

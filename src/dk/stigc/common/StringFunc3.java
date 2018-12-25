@@ -1,6 +1,6 @@
 package dk.stigc.common;
 
-public class StringFunc 
+public class StringFunc3 
 {
 	public static boolean isNullOrEmpty(String value)
 	{
@@ -98,5 +98,15 @@ public class StringFunc
 		}
 
 		return -1;
+	}
+
+	public static String getFolderFromPath(String path)
+	{
+		int i = path.lastIndexOf('\\');
+		if (i == -1)
+			i = path.lastIndexOf('/');
+		if (i == -1)
+			return null;
+		return path.substring(0, i);
 	}
 }

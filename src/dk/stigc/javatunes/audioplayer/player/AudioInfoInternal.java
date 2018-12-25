@@ -4,19 +4,24 @@ import dk.stigc.javatunes.audioplayer.other.*;
 
 public class AudioInfoInternal
 {
+	private Codec codec;
 	private int sourceHashCode;
 	private int channels, sampleRate, bitsPerSample;
-	public int kbps;
-	public int lengthInSeconds;
-	public volatile long positionInMs;
-	public long lengthInBytes;
-	public int icyMetaInt;
-	public String icyName, icyGenre, icyStreamTitle;
-	public Codec codec;
+	private int lengthInSeconds;
+	private long positionInMs;
+	private long lengthInBytes;
+	private int kbps;
+	private int icyMetaInt;
+	private String icyName, icyGenre, icyStreamTitle;
+	private String newLocation;
 	
-	public AudioInfoInternal(int sourceHashCode)
+	public AudioInfoInternal(IAudio audio)
 	{
-		this.sourceHashCode = sourceHashCode;
+		Codec codec = audio.getCodec();
+		if (codec == null || codec == Codec.unknown)
+			codec = Codec.extractCodecFromExtension(audio.getPath());
+		this.codec = codec;
+		this.sourceHashCode = audio.hashCode();
 	}
 
 	public synchronized void init(int channels, int sampleRate, int bitsPerSample)
@@ -25,6 +30,33 @@ public class AudioInfoInternal
 		this.sampleRate = sampleRate;
 		this.bitsPerSample = bitsPerSample;
 	}  
+	
+	public synchronized void setLengthInBytes(long lengthInBytes)
+	{
+		this.lengthInBytes = lengthInBytes;
+	}
+	
+	public synchronized void setPositionInMs(long positionInMs)
+	{
+		this.positionInMs = positionInMs;
+	}
+	
+	public synchronized void setKbps(int kbps)
+	{
+		this.kbps = kbps;
+	}
+
+	public synchronized void setIcyData(int icyMetaInt, String icyName, String icyGenre)
+	{
+		this.icyMetaInt = icyMetaInt;
+		this.icyName = icyName;
+		this.icyGenre = icyGenre;
+	}
+	
+	public synchronized void setIcyTitle(String title)
+	{
+		this.icyStreamTitle = title;
+	}
 	
 	private double bitrateCount, bitrateSum;
 	
@@ -76,6 +108,35 @@ public class AudioInfoInternal
 		ai.icyStreamTitle = this.icyStreamTitle;
 		ai.codec = this.codec;
 		ai.sourceHashCode = this.sourceHashCode;
+		ai.newLocation = this.newLocation;
 		return ai;
+	}
+
+	public synchronized boolean isCodec(Codec... codecs)
+	{
+		for(Codec c: codecs)
+			if (c == codec)
+				return true;
+		return false;
+	}
+	
+	public synchronized Codec getCodec()
+	{
+		return codec;
+	}
+
+	public synchronized void setCodec(Codec codec)
+	{
+		this.codec = codec;
+	}
+	
+	public synchronized String getNewLocation()
+	{
+		return newLocation;
+	}
+
+	public synchronized void setNewLocation(String newLocation)
+	{
+		this.newLocation =newLocation;
 	}
 }
